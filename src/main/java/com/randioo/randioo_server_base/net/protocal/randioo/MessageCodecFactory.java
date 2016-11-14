@@ -1,4 +1,4 @@
-package com.randioo.randioo_server_base.net;
+package com.randioo.randioo_server_base.net.protocal.randioo;
 
 import java.nio.charset.Charset;
 

@@ -13,6 +13,8 @@ import org.apache.mina.filter.executor.ExecutorFilter;
 import org.apache.mina.http.HttpServerCodec;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
 
+import com.randioo.randioo_server_base.net.protocal.randioo.MessageCodecFactory;
+
 public class WanServer {
 	public static void startIOServer(IoHandlerAdapter handler, InetSocketAddress inetSocketAddress) {
 		startServer(new ProtocolCodecFilter(new MessageCodecFactory(Charset.forName(ServerConfig.getCharSet()))),

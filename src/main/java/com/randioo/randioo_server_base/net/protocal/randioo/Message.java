@@ -1,10 +1,12 @@
-package com.randioo.randioo_server_base.net;
+package com.randioo.randioo_server_base.net.protocal.randioo;
 
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 import org.apache.mina.core.buffer.IoBuffer;
 import org.apache.mina.core.session.IoSession;
+
+import com.randioo.randioo_server_base.net.ServerConfig;
 
 /**
  * 消息类

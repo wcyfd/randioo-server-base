@@ -13,7 +13,7 @@ public class SpringContext {
 	/**
 	 * 加载spring配置
 	 */
-	public static void inizSpringCtx(String filePath) {
+	public static void initSpringCtx(String filePath) {
 		ctx = new ClassPathXmlApplicationContext(filePath);
 		ctx.registerShutdownHook();
 	}
