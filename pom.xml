@@ -172,7 +172,6 @@
 			<version>2.3.0</version>
 		</dependency>
 
-
 		<!-- spring -->
 		<!-- https://mvnrepository.com/artifact/org.springframework/spring-aop -->
 		<dependency>

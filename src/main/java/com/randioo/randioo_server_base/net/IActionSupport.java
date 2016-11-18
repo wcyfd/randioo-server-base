@@ -14,4 +14,5 @@ import com.randioo.randioo_server_base.net.protocal.randioo.Message;
 public interface IActionSupport {
 	void execute(Message message, IoSession session);
 	void execute(ByteString data,IoSession session);
+	void execute(Object data,IoSession session);
 }

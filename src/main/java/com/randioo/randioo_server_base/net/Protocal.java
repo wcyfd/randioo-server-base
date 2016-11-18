@@ -35,14 +35,14 @@ public final class Protocal {
       return com.randioo.randioo_server_base.net.Protocal.internal_static_com_randioo_randioo_server_base_net_PT_fieldAccessorTable;
     }
     
-    // required sint32 protocal = 1;
+    // optional sint32 protocal = 1;
     public static final int PROTOCAL_FIELD_NUMBER = 1;
     private boolean hasProtocal;
     private int protocal_ = 0;
     public boolean hasProtocal() { return hasProtocal; }
     public int getProtocal() { return protocal_; }
     
-    // required bytes data = 2;
+    // optional bytes data = 2;
     public static final int DATA_FIELD_NUMBER = 2;
     private boolean hasData;
     private com.google.protobuf.ByteString data_ = com.google.protobuf.ByteString.EMPTY;
@@ -52,8 +52,6 @@ public final class Protocal {
     private void initFields() {
     }
     public final boolean isInitialized() {
-      if (!hasProtocal) return false;
-      if (!hasData) return false;
       return true;
     }
     
@@ -285,7 +283,7 @@ public final class Protocal {
       }
       
       
-      // required sint32 protocal = 1;
+      // optional sint32 protocal = 1;
       public boolean hasProtocal() {
         return result.hasProtocal();
       }
@@ -303,7 +301,7 @@ public final class Protocal {
         return this;
       }
       
-      // required bytes data = 2;
+      // optional bytes data = 2;
       public boolean hasData() {
         return result.hasData();
       }
@@ -351,8 +349,8 @@ public final class Protocal {
   static {
     java.lang.String[] descriptorData = {
       "\n\016protocal.proto\022#com.randioo.randioo_se" +
-      "rver_base.net\"$\n\002PT\022\020\n\010protocal\030\001 \002(\021\022\014\n" +
-      "\004data\030\002 \002(\014"
+      "rver_base.net\"$\n\002PT\022\020\n\010protocal\030\001 \001(\021\022\014\n" +
+      "\004data\030\002 \001(\014"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {

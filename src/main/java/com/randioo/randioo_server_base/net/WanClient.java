@@ -60,7 +60,7 @@ public class WanClient {
 		return session;
 	}
 
-	public void send(Message message) {
+	public void send(Object message) {
 		getSession().write(message);
 	}
 

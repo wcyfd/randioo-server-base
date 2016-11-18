@@ -18,5 +18,11 @@ public class ActionSupport implements IActionSupport{
 		// TODO Auto-generated method stub
 		
 	}
+	
+	@Override
+	public void execute(Object data, IoSession session) {
+		// TODO Auto-generated method stub
+		
+	}
 
 }
