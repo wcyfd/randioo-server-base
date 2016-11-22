@@ -28,5 +28,4 @@ public class SpringContext {
 	public static <T> T getBean(String beanId) {
 		return (T) ctx.getBean(beanId);
 	}
-
 }

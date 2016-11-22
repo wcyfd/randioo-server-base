@@ -1,5 +1,0 @@
-package com.randioo.randioo_server_base.net;
-message PT{
-	optional sint32 protocal = 1;
-	optional bytes data=2;
-}

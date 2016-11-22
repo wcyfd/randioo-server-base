@@ -1,1 +1,0 @@
-for %%i in (*.proto) do protoc-2.3.0-windows-x86_64.exe --java_out=. %%i
