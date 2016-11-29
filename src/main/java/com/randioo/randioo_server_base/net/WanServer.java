@@ -33,7 +33,7 @@ public class WanServer {
 		ioAcceptor.getSessionConfig().setIdleTime(IdleStatus.BOTH_IDLE, ServerConfig.getIdleTime());
 
 		ioAcceptor.getSessionConfig().setSendBufferSize(ServerConfig.getBufferSize());
-		ioAcceptor.getSessionConfig().setTcpNoDelay(false);
+		ioAcceptor.getSessionConfig().setTcpNoDelay(true);
 
 		DefaultIoFilterChainBuilder chain = ioAcceptor.getFilterChain();
 
