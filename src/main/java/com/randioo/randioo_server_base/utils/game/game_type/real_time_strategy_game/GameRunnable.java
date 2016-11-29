@@ -3,10 +3,10 @@ package com.randioo.randioo_server_base.utils.game.game_type.real_time_strategy_
 
 
 public abstract class GameRunnable implements Runnable {
-	protected RTSGame gameScheduled;
+	protected RTSGame RTSGame;
 
-	public GameRunnable(RTSGame gameScheduled) {
-		this.gameScheduled = gameScheduled;
+	public GameRunnable(RTSGame RTSGame) {
+		this.RTSGame = RTSGame;
 	}
 
 	@Override

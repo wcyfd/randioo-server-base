@@ -30,12 +30,18 @@ public class RTSGameStarter {
 		this.gameHandler = gameHandler;
 	}
 
+	/**
+	 * 
+	 * @param RTSGame
+	 * @param keyFrameNeedTime 关键帧与关键帧之间的毫秒数
+	 * @author wcy 2016年11月29日
+	 */
 	public void startGame(RTSGame RTSGame, int keyFrameNeedTime) {
 		ScheduledFuture<?> scheduleFuture = scheduleExecutorService.scheduleAtFixedRate(new GameRunnable(RTSGame) {
 
 			@Override
 			public void run() {
-				gameHandler.gameLogic(gameScheduled);
+				gameHandler.gameLogic(RTSGame);
 			}
 
 		}, 0, keyFrameNeedTime, TimeUnit.MILLISECONDS);
