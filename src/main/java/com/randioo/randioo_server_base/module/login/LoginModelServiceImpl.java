@@ -11,9 +11,9 @@ import com.randioo.randioo_server_base.module.BaseService;
 import com.randioo.randioo_server_base.net.CacheLockUtil;
 
 public class LoginModelServiceImpl extends BaseService implements LoginModelService {
-	private LoginHandler loginHandler;
+	private LoginHandler<?> loginHandler;
 
-	public void setLoginHandler(LoginHandler loginHandler) {
+	public void setLoginHandler(LoginHandler<?> loginHandler) {
 		this.loginHandler = loginHandler;
 	}
 
