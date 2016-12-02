@@ -6,7 +6,7 @@ import com.google.protobuf.GeneratedMessage;
 import com.randioo.randioo_server_base.module.BaseServiceInterface;
 
 public interface LoginModelService extends BaseServiceInterface{
-	GeneratedMessage login(GeneratedMessage msg);
-	GeneratedMessage creatRole(GeneratedMessage msg);
-	GeneratedMessage getRoleData(GeneratedMessage requestMessage, IoSession ioSession);
+	Object login(Object msg);
+	Object creatRole(Object msg);
+	Object getRoleData(Object requestMessage, IoSession ioSession);
 }

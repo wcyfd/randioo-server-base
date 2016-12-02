@@ -18,12 +18,12 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	@Override
-	public GeneratedMessage login(GeneratedMessage msg) {
+	public Object login(Object msg) {
 		String account = loginHandler.getLoginAccount(msg);
 
 		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
 		reentrantLock.lock();
-		GeneratedMessage message = null;
+		Object message = null;
 		try {
 			message = loginHandler.isNewAccount(account);
 		} catch (Exception e) {
@@ -35,22 +35,23 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	@Override
-	public GeneratedMessage creatRole(GeneratedMessage msg) {
+	public Object creatRole(Object msg) {
 		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, loginHandler.getCreateRoleAccount(msg));
 		reentrantLock.lock();
 		try {
-			GeneratedMessage checkCreateRoleAccountResult = loginHandler.checkCreateRoleAccount(msg);
+			Object checkCreateRoleAccountResult = loginHandler.checkCreateRoleAccount(msg);
 			if (checkCreateRoleAccountResult != null) {
 				return checkCreateRoleAccountResult;
 			}
 
-			Connection conn = loginHandler.getConnection();
+			Connection conn = null;
 			try { // mysql事务
+				conn = loginHandler.getConnection();
 				if (conn != null) {
 					conn.setAutoCommit(false);
 				}
 
-				GeneratedMessage createRoleResultProtobufMessage = loginHandler.createRole(conn, msg);
+				Object createRoleResultProtobufMessage = loginHandler.createRole(conn, msg);
 
 				if (conn != null) {
 					conn.commit(); // 提交JDBC事务
@@ -86,13 +87,13 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	@Override
-	public GeneratedMessage getRoleData(GeneratedMessage requestMessage, IoSession ioSession) {		
+	public Object getRoleData(Object requestMessage, IoSession ioSession) {		
 		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, loginHandler.getRoleDataAccount(requestMessage));
 		reentrantLock.lock();
 
 		try {
 			Ref ref = new Ref();
-			GeneratedMessage resultMessage = loginHandler.getRoleObjectFromCollectionsByGeneratedMessage(ref,requestMessage);
+			Object resultMessage = loginHandler.getRoleObjectFromCollectionsByGeneratedMessage(ref,requestMessage);
 			if (resultMessage != null) {
 				return resultMessage;
 			}
@@ -100,7 +101,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 			IoSession oldSession = loginHandler.getSessionByRef(ref);
 			if (oldSession != null) { // 该账号已登录
 				if (oldSession.isConnected()) {
-					GeneratedMessage connectingErrorMessage = loginHandler.connectingError();
+					Object connectingErrorMessage = loginHandler.connectingError();
 					if (connectingErrorMessage != null) {
 						return connectingErrorMessage;
 					}

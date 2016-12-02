@@ -1,7 +1,10 @@
 package com.randioo.randioo_server_base.utils.game.matcher;
 
 public interface MatchHandler {
-	public void matchSuccess(MatchInfo matchInfo, Matchable role);
+	
+	public MatchInfo createMatchInfo(MatchRule matchRule);
+	
+	public void matchSuccess(MatchInfo matchInfo, MatchRule matchRule);
 
 	public void matchComplete(MatchInfo matchInfo);
 	
@@ -9,7 +12,7 @@ public interface MatchHandler {
 
 	public boolean matchRule(MatchRule myMatchRule,MatchInfo otherMatchInfo);
 
-	public Matchable getAutoMatchRole(MatchInfo matchInfo);
+	public MatchRule getAutoMatchRole(MatchInfo matchInfo);
 
 	public void destroyMatchInfo(MatchInfo matchInfo);
 }

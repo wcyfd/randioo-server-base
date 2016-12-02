@@ -66,7 +66,7 @@ public class GameMatcher {
 							&& matchInfo.getMatchables().size() < matchInfo.getMatchRule().getPlayerCount()) {
 						matchFailed = false;
 
-						matchHandler.matchSuccess(matchInfo, matchRule.getMatchTarget());
+						matchHandler.matchSuccess(matchInfo, matchRule);
 						matchInfo.getMatchables().add(matchRule.getMatchTarget());
 						matchRule.getMatchTarget().setMatchInfo(matchInfo);
 
@@ -82,14 +82,14 @@ public class GameMatcher {
 
 			// 如果匹配不成功
 			if (matchFailed) {
-				MatchInfo matchInfo = this.createMatchInfo();
+				MatchInfo matchInfo = matchHandler.createMatchInfo(matchRule);
+				id++;
+				matchInfo.setMatchId(id);
 				matchInfo.setMatchRule(matchRule);
 				matchInfo.getMatchables().add(matchRule.getMatchTarget());
 				matchRule.getMatchTarget().setMatchInfo(matchInfo);
 
 				if (!matchRule.isMatchNPC()) {
-					// 调用匹配失败函数
-
 					// 如果需要等待，则进行等待函数
 					if (matchHandler.needWaitMatch(matchInfo)) {
 
@@ -122,11 +122,11 @@ public class GameMatcher {
 
 	private void matchNPC(MatchInfo matchInfo) {
 		for (int i = matchInfo.getMatchables().size(), playerCount = matchInfo.getMatchRule().getPlayerCount(); i < playerCount; i++) {
-			Matchable npc = matchHandler.getAutoMatchRole(matchInfo);
+			MatchRule matchRule = matchHandler.getAutoMatchRole(matchInfo);
 
-			matchHandler.matchSuccess(matchInfo, npc);
-			matchInfo.getMatchables().add(npc);
-			npc.setMatchInfo(matchInfo);
+			matchHandler.matchSuccess(matchInfo, matchRule);
+			matchInfo.getMatchables().add(matchRule.getMatchTarget());
+			matchRule.getMatchTarget().setMatchInfo(matchInfo);
 
 			if (checkMatchComplete(matchInfo))
 				break;
@@ -137,7 +137,7 @@ public class GameMatcher {
 	private boolean checkMatchComplete(MatchInfo matchInfo) {
 		// 匹配完毕，则停止计时器
 		if (matchInfo.getMatchables().size() >= matchInfo.getMatchRule().getPlayerCount()) {
-			cancelMatchInfoSchedule(matchInfo);
+			cancelMatchInfoScheduled(matchInfo);
 
 			addNeedDeleteMatchInfo(matchInfo);
 
@@ -149,19 +149,12 @@ public class GameMatcher {
 
 	}
 
-	private MatchInfo createMatchInfo() {
-		MatchInfo info = new MatchInfo();
-		id++;
-		info.setMatchId(id);
-		return info;
-	}
-
 	public boolean cancelRole(Matchable role) {
 		final Lock lock = this.lock;
 		MatchInfo matchInfo = role.getMatchInfo();
-		if (matchInfo == null || matchInfo.isMatchCancel())
+		if (matchInfo.isMatchCancel())
 			return true;
-		if (matchInfo.isMatchComplete()) {
+		if (matchInfo == null ||matchInfo.isMatchComplete()) {
 			return false;
 		}
 		lock.lock();
@@ -182,7 +175,7 @@ public class GameMatcher {
 
 			// 匹配列表为空时直接取消该匹配
 			if (matchInfo.getMatchables().size() <= 0) {
-				cancelMatchInfoSchedule(matchInfo);
+				cancelMatchInfoScheduled(matchInfo);
 				matchInfo.setMatchCancel(true);
 				addNeedDeleteMatchInfo(matchInfo);
 			}
@@ -193,7 +186,56 @@ public class GameMatcher {
 		}
 	}
 
-	private void cancelMatchInfoSchedule(MatchInfo matchInfo) {
+	public boolean cancelMatch(Matchable matchable) {
+		final Lock lock = this.lock;
+		MatchInfo matchInfo = matchable.getMatchInfo();
+		//如果已经取消匹配，则返回true
+		if(matchInfo.isMatchCancel()){
+			return true;
+		}
+		// 如果已经匹配完成,则不能取消
+		if (matchInfo.isMatchComplete()) {
+			return false;
+		}
+		lock.lock();
+		if(matchInfo.isMatchCancel()){
+			return true;
+		}
+		if (matchInfo.isMatchComplete()) {
+			return false;
+		}
+		try {
+			MatchRule matchRule = matchInfo.getMatchRule();
+			List<Matchable> matchables = matchInfo.getMatchables();
+			matchables.remove(matchable);
+			// 如果删除的人是发起者，并且还有匹配的人，则更换匹配发起者
+			if (matchRule.getMatchTarget() == matchable) {
+				if(matchables.size()>0){					
+					matchRule.setMatchTarget(matchables.get(0));
+					matchable.setMatchInfo(null);
+				}				
+			}
+			boolean isAllNPC = false;
+			for(Matchable m:matchables){
+				isAllNPC = m.isNPC();
+			}
+			
+			if (isAllNPC || matchables.size() == 0) {
+				cancelMatchInfoScheduled(matchInfo);
+				matchHandler.destroyMatchInfo(matchInfo);
+				matchInfo.setMatchCancel(true);
+				addNeedDeleteMatchInfo(matchInfo);
+			}
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			lock.unlock();
+		}
+		return true;
+	}
+
+	private void cancelMatchInfoScheduled(MatchInfo matchInfo) {
 		ScheduledFuture<?> scheduleFuture = matchInfo.getScheduleFuture();
 		if (scheduleFuture != null) {
 			scheduleFuture.cancel(true);
@@ -220,6 +262,7 @@ public class GameMatcher {
 		public void run() {
 			// TODO Auto-generated method stub
 			// 匹配超时
+
 			final Lock lock = getLock();
 
 			if (matchInfo.isMatchComplete() || matchInfo.isMatchCancel())
@@ -229,9 +272,12 @@ public class GameMatcher {
 				if (matchInfo.isMatchComplete() || matchInfo.isMatchCancel())
 					return;
 
-				cancelMatchInfoSchedule(matchInfo);
+				cancelMatchInfoScheduled(matchInfo);
 
 				matchNPC(matchInfo);
+			} catch (Exception e) {
+				e.printStackTrace();
+
 			} finally {
 				lock.unlock();
 			}
