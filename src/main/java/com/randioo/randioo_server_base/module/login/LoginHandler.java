@@ -1,6 +1,7 @@
 package com.randioo.randioo_server_base.module.login;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import org.apache.mina.core.session.IoSession;
 
@@ -15,7 +16,7 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	String getLoginAccount(GeneratedMessage loginMessage);
+	String getLoginAccount(Object loginMessage);
 
 	/**
 	 * 是否是新的帐号
@@ -24,7 +25,7 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	GeneratedMessage isNewAccount(String account);
+	Object isNewAccount(String account);
 
 	/**
 	 * 获得创建账号的帐号
@@ -33,7 +34,7 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	String getCreateRoleAccount(GeneratedMessage createRoleMessage);
+	String getCreateRoleAccount(Object createRoleMessage);
 
 	/**
 	 * 检查创建的帐号是否合法
@@ -42,15 +43,16 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	GeneratedMessage checkCreateRoleAccount(GeneratedMessage createRoleMessage);
+	Object checkCreateRoleAccount(Object createRoleMessage);
 
 	/**
 	 * 获得数据库连接
 	 * 
 	 * @return
 	 * @author wcy 2016年11月30日
+	 * @throws SQLException 
 	 */
-	Connection getConnection();
+	Connection getConnection() throws SQLException;
 
 	/**
 	 * 创建帐号
@@ -60,12 +62,12 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	GeneratedMessage createRole(Connection conn, GeneratedMessage createRoleMessage);
+	Object createRole(Connection conn, Object createRoleMessage);
 
 	/**
 	 * 获得玩家信息
 	 */
-	GeneratedMessage getRoleData(Ref<T> ref);
+	Object getRoleData(Ref<T> ref);
 
 	/**
 	 * 需要获得信息的玩家账号
@@ -73,7 +75,7 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	String getRoleDataAccount(GeneratedMessage createRoleMessage);
+	String getRoleDataAccount(Object createRoleMessage);
 
 	/**
 	 * 根据帐号获得玩家对象
@@ -83,7 +85,7 @@ public interface LoginHandler<T> {
 	 * @author wcy 2016年11月30日
 	 * @param requestMessage
 	 */
-	GeneratedMessage getRoleObjectFromCollectionsByGeneratedMessage(Ref<T> ref, GeneratedMessage requestMessage);
+	Object getRoleObjectFromCollectionsByGeneratedMessage(Ref<T> ref, Object requestMessage);
 
 	/**
 	 * session的标记标签
@@ -117,7 +119,7 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	GeneratedMessage connectingError();
+	Object connectingError();
 
 	/**
 	 * 记录session

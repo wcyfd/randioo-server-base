@@ -5,6 +5,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import com.randioo.randioo_server_base.utils.game.game_type.GameBase;
 import com.randioo.randioo_server_base.utils.game.game_type.GameHandler;
 
 public class RTSGameStarter {
@@ -36,7 +37,18 @@ public class RTSGameStarter {
 	 * @param keyFrameNeedTime 关键帧与关键帧之间的毫秒数
 	 * @author wcy 2016年11月29日
 	 */
-	public void startGame(RTSGame RTSGame, int keyFrameNeedTime) {
+	public void startRTSGame(RTSGame RTSGame, int keyFrameNeedTime) {
+		this.startRTSGame(RTSGame, keyFrameNeedTime, TimeUnit.MILLISECONDS);
+	}
+
+	/**
+	 * 
+	 * @param RTSGame
+	 * @param keyFrameNeedTime
+	 * @param timeUnit
+	 * @author wcy 2016年12月1日
+	 */
+	public void startRTSGame(RTSGame RTSGame, int keyFrameNeedTime, TimeUnit timeUnit) {
 		ScheduledFuture<?> scheduleFuture = scheduleExecutorService.scheduleAtFixedRate(new GameRunnable(RTSGame) {
 
 			@Override
@@ -44,7 +56,7 @@ public class RTSGameStarter {
 				gameHandler.gameLogic(RTSGame);
 			}
 
-		}, 0, keyFrameNeedTime, TimeUnit.MILLISECONDS);
+		}, 0, keyFrameNeedTime, timeUnit);
 		RTSGame.setScheduleFuture(scheduleFuture);
 	}
 
