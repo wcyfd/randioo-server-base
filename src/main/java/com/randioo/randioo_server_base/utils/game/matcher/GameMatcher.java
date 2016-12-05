@@ -210,15 +210,15 @@ public class GameMatcher {
 	public void cancelMatch(Matchable matchable) {
 		// 锁定操作，直到该操作完成
 		final Lock lock = this.lock;
-		System.out.println("cancelMatch");
+		System.out.println(this.getClass().getSimpleName()+" cancelMatch");
 		MatchInfo matchInfo = matchable.getMatchInfo();
 
 		try {// 如果已经取消匹配或者已经匹配完成，则直接返回
-			if (matchInfo == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
+			if (matchable.getMatchInfo() == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
 				return;
 			}
 			lock.lock();
-			if (matchInfo == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
+			if (matchable.getMatchInfo() == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
 				return;
 			}
 
@@ -226,6 +226,7 @@ public class GameMatcher {
 			List<Matchable> matchables = matchInfo.getMatchables();
 			matchables.remove(matchable);
 			matchable.setMatchInfo(null);
+			matchHandler.cancelMatch(matchable);
 			// 如果删除的人是发起者，并且还有匹配的人，则更换匹配发起者
 
 			boolean isAllNPC = true;

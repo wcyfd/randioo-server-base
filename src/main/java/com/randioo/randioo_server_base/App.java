@@ -9,6 +9,7 @@ import com.randioo.randioo_server_base.utils.game.matcher.GameMatcher;
 import com.randioo.randioo_server_base.utils.game.matcher.MatchHandler;
 import com.randioo.randioo_server_base.utils.game.matcher.MatchInfo;
 import com.randioo.randioo_server_base.utils.game.matcher.MatchRule;
+import com.randioo.randioo_server_base.utils.game.matcher.Matchable;
 
 /**
  * Hello world!
@@ -71,6 +72,12 @@ public class App
 				// TODO Auto-generated method stub
 				System.out.println("createMatchInfo");
 				return new MatchInfo();
+			}
+
+			@Override
+			public void cancelMatch(Matchable matchable) {
+				// TODO Auto-generated method stub
+				System.out.println("cancel match success");
 			}
 		});
 		

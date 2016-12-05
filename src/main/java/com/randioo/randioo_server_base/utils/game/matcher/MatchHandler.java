@@ -15,4 +15,6 @@ public interface MatchHandler {
 	public MatchRule getAutoMatchRole(MatchInfo matchInfo);
 
 	public void destroyMatchInfo(MatchInfo matchInfo);
+
+	public void cancelMatch(Matchable matchable);
 }
