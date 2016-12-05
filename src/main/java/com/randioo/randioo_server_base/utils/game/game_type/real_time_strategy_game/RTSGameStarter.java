@@ -57,7 +57,7 @@ public class RTSGameStarter {
 			}
 
 		}, 0, keyFrameNeedTime, timeUnit);
-		RTSGame.setScheduleFuture(scheduleFuture);
+		RTSGame.setScheduledFuture(scheduleFuture);
 	}
 
 }

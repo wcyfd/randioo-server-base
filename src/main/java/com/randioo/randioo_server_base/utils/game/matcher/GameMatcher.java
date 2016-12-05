@@ -99,9 +99,8 @@ public class GameMatcher {
 							// 再启动定时器
 							matchIdSet.add(matchInfo.getMatchId());
 							matchInfoMap.put(matchInfo.getMatchId(), matchInfo);
-							matchInfo.setScheduleFuture(
-									this.scheduleExecutorService.schedule(new WaitMatchRunnable(matchInfo),
-											matchRule.getWaitTime(), matchRule.getWaitUnit()));
+							matchInfo.setScheduleFuture(this.scheduleExecutorService.schedule(new WaitMatchRunnable(
+									matchInfo), matchRule.getWaitTime(), matchRule.getWaitUnit()));
 						}
 					}
 				} else {
@@ -129,8 +128,7 @@ public class GameMatcher {
 	 * @param matchInfo
 	 */
 	private void matchNPC(MatchInfo matchInfo) {
-		for (int i = matchInfo.getMatchables().size(), playerCount = matchInfo.getMatchRule()
-				.getPlayerCount(); i < playerCount; i++) {
+		for (int i = matchInfo.getMatchables().size(), playerCount = matchInfo.getMatchRule().getPlayerCount(); i < playerCount; i++) {
 			MatchRule matchRule = matchHandler.getAutoMatchRole(matchInfo);
 
 			matchHandler.matchSuccess(matchInfo, matchRule);
@@ -169,48 +167,16 @@ public class GameMatcher {
 
 	}
 
-	public boolean cancelRole(Matchable role) {
-		final Lock lock = this.lock;
-		MatchInfo matchInfo = role.getMatchInfo();
-		if (matchInfo.isMatchCancel())
-			return true;
-		if (matchInfo == null || matchInfo.isMatchComplete()) {
-			return false;
-		}
-		lock.lock();
-		System.out.println("cancelRole");
-		try {
-			if (matchInfo.isMatchCancel()) {
-				return true;
-			}
-			if (matchInfo.isMatchComplete()) {
-				return false;
-			}
-
-			// 将此人从匹配列表中删除
-			if (matchInfo.getMatchables().size() > 0) {
-				matchInfo.getMatchables().remove(role);
-				matchHandler.destroyMatchInfo(matchInfo);
-				role.setMatchInfo(null);
-			}
-
-			// 匹配列表为空时直接取消该匹配
-			if (matchInfo.getMatchables().size() <= 0) {
-				cancelMatchInfoScheduled(matchInfo);
-				matchInfo.setMatchCancel(true);
-				addNeedDeleteMatchInfo(matchInfo);
-			}
-			return true;
-
-		} finally {
-			lock.unlock();
-		}
-	}
-
+	/**
+	 * 取消匹配
+	 * 
+	 * @param matchable
+	 * @author wcy 2016年12月5日
+	 */
 	public void cancelMatch(Matchable matchable) {
 		// 锁定操作，直到该操作完成
 		final Lock lock = this.lock;
-		System.out.println(this.getClass().getSimpleName()+" cancelMatch");
+		System.out.println(this.getClass().getSimpleName() + " cancelMatch");
 		MatchInfo matchInfo = matchable.getMatchInfo();
 
 		try {// 如果已经取消匹配或者已经匹配完成，则直接返回
