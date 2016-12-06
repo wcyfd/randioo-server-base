@@ -2,6 +2,7 @@ package com.randioo.randioo_server_base.entity;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.Lock;
@@ -10,6 +11,7 @@ import com.google.protobuf.GeneratedMessage;
 
 /**
  * 事件队列
+ * 
  * @author wcy 2016年12月5日
  *
  */
@@ -69,10 +71,10 @@ public class ActionQueue {
 
 			Object[] objs = inner.toArray();
 			for (Object obj : objs) {
-				GameEvent event= (GameEvent)obj;
-				if(event.getExecuteFrameIndex()<limitTime){
+				GameEvent event = (GameEvent) obj;
+				if (event.getExecuteFrameIndex() < limitTime) {
 					array.add(event);
-					inner.remove(obj);					
+					inner.remove(obj);
 				}
 			}
 		} catch (Exception e) {
