@@ -53,6 +53,9 @@ public class GameMatcher {
 		lock.lock();
 		boolean matchFailed = true;
 		try {
+			if (matchRule.getMatchTarget().getMatchInfo() != null) {
+				return;
+			}
 			if (!matchRule.isMatchNPC()) {
 				for (Integer matchId : matchIdSet) {
 					MatchInfo matchInfo = matchInfoMap.get(matchId);
@@ -178,13 +181,13 @@ public class GameMatcher {
 		final Lock lock = this.lock;
 		System.out.println(this.getClass().getSimpleName() + " cancelMatch");
 		MatchInfo matchInfo = matchable.getMatchInfo();
-
-		try {// 如果已经取消匹配或者已经匹配完成，则直接返回
-			if (matchable.getMatchInfo() == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
-				return;
-			}
+		// 如果已经取消匹配或者已经匹配完成，则直接返回
+		if (matchable.getMatchInfo() == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
+			return;
+		}
+		try {
 			lock.lock();
-			if (matchable.getMatchInfo() == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
+			if (matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
 				return;
 			}
 

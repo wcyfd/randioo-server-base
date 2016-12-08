@@ -5,10 +5,6 @@ public interface Matchable {
 
 	public MatchInfo getMatchInfo();
 	
-	public void setPrepare(boolean prepare);
-
-	public boolean isPrepare();
-	
 	public void setNpc(boolean isNpc);
 	
 	public boolean isNPC();

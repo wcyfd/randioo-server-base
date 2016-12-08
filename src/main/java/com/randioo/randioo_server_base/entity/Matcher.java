@@ -6,7 +6,6 @@ import com.randioo.randioo_server_base.utils.game.matcher.Matchable;
 public class Matcher implements Matchable{
 
 	private MatchInfo matchInfo;
-	private boolean prepare;
 	private boolean npc;
 	@Override
 	public void setMatchInfo(MatchInfo matchInfo) {
@@ -18,18 +17,6 @@ public class Matcher implements Matchable{
 	public MatchInfo getMatchInfo() {
 		// TODO Auto-generated method stub
 		return matchInfo;
-	}
-
-	@Override
-	public void setPrepare(boolean prepare) {
-		// TODO Auto-generated method stub
-		this.prepare = prepare;
-	}
-
-	@Override
-	public boolean isPrepare() {
-		// TODO Auto-generated method stub
-		return prepare;
 	}
 
 	@Override
