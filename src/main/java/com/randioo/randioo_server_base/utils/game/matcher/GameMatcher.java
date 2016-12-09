@@ -102,8 +102,12 @@ public class GameMatcher {
 							// 再启动定时器
 							matchIdSet.add(matchInfo.getMatchId());
 							matchInfoMap.put(matchInfo.getMatchId(), matchInfo);
-							matchInfo.setScheduleFuture(this.scheduleExecutorService.schedule(new WaitMatchRunnable(
-									matchInfo), matchRule.getWaitTime(), matchRule.getWaitUnit()));
+							// matchInfo.setScheduleFuture(this.scheduleExecutorService.schedule(new
+							// WaitMatchRunnable(
+							// matchInfo), matchRule.getWaitTime(),
+							// matchRule.getWaitUnit()));
+							matchInfo.setScheduleFuture(this.scheduleExecutorService.scheduleAtFixedRate(
+									new WaitMatchRunnable(matchInfo), 0, 1, matchRule.getWaitUnit()));
 						}
 					}
 				} else {
@@ -199,20 +203,27 @@ public class GameMatcher {
 			// 如果删除的人是发起者，并且还有匹配的人，则更换匹配发起者
 
 			boolean isAllNPC = true;
+			Matchable nextMatchTarget = null;
 			if (matchRule.getMatchTarget() == matchable) {
 				for (Matchable m : matchables) {
 					if (!m.isNPC()) {
 						isAllNPC = false;
+						nextMatchTarget = m;
 						break;
 					}
 				}
 			}
 
+			// 如果全部都是npc则取消该匹配
 			if (isAllNPC) {
 				matchInfo.setMatchCancel(true);
 				cancelMatchInfoScheduled(matchInfo);
 				matchHandler.destroyMatchInfo(matchInfo);
 				addNeedDeleteMatchInfo(matchInfo);
+			} else {
+				// 替换匹配发起人
+				matchRule.setMatchTarget(nextMatchTarget);
+				matchHandler.changeStartMatcher(matchable, nextMatchTarget);
 			}
 
 		} catch (Exception e) {
@@ -254,20 +265,28 @@ public class GameMatcher {
 			this.matchInfo = matchInfo;
 		}
 
+		private int clickCount = 0;
+
 		@Override
-		public void run() {
-			// 匹配超时
+		public void run() {					
+			if (matchInfo.isMatchComplete() || matchInfo.isMatchCancel())
+				return;
 			final Lock lock = getLock();
 			try {
-				if (matchInfo.isMatchComplete() || matchInfo.isMatchCancel())
-					return;
 				lock.lock();
+
 				if (matchInfo.isMatchComplete() || matchInfo.isMatchCancel())
 					return;
 
-				cancelMatchInfoScheduled(matchInfo);
+				matchHandler.waitClick(matchInfo, clickCount);
+				
+				// 匹配超时	
+				if (clickCount >= matchInfo.getMatchRule().getWaitTime()) {
+					cancelMatchInfoScheduled(matchInfo);
 
-				matchNPC(matchInfo);
+					matchNPC(matchInfo);
+				}
+				clickCount++;
 			} catch (Exception e) {
 				e.printStackTrace();
 

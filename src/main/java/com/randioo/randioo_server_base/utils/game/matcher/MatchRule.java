@@ -7,7 +7,7 @@ public class MatchRule {
 	private int playerCount;
 	private boolean matchNPC;
 	private long waitTime;
-	private TimeUnit waitUnit;
+	private TimeUnit waitUnit = TimeUnit.SECONDS;
 
 	public Matchable getMatchTarget() {
 		return matchTarget;

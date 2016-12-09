@@ -20,9 +20,15 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	@Override
 	public Object login(Object msg) {
 		String account = loginHandler.getLoginAccount(msg);
-
+		
+		GeneratedMessage checkCanLoginMessage = loginHandler.checkLoginAccountCanLogin(account);
+		if (checkCanLoginMessage != null) {
+			return checkCanLoginMessage;
+		}
+		
 		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
 		reentrantLock.lock();
+		
 		Object message = null;
 		try {
 			message = loginHandler.isNewAccount(account);

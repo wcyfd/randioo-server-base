@@ -79,6 +79,18 @@ public class App
 				// TODO Auto-generated method stub
 				System.out.println("cancel match success");
 			}
+
+			@Override
+			public void changeStartMatcher(Matchable originStarter, Matchable newStarter) {
+				// TODO Auto-generated method stub
+				
+			}
+
+			@Override
+			public void waitClick(MatchInfo matchInfo, int clickCount) {
+				// TODO Auto-generated method stub
+				
+			}
 		});
 		
 		Matcher matcher = new Matcher();

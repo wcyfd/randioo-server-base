@@ -129,4 +129,6 @@ public interface LoginHandler<T> {
 	 * @author wcy 2016年11月30日
 	 */
 	void recordSession(Ref<T> ref, IoSession session);
+
+	GeneratedMessage checkLoginAccountCanLogin(String account);
 }

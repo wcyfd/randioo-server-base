@@ -17,4 +17,8 @@ public interface MatchHandler {
 	public void destroyMatchInfo(MatchInfo matchInfo);
 
 	public void cancelMatch(Matchable matchable);
+	
+	public void changeStartMatcher(Matchable originStarter,Matchable newStarter);
+	
+	public void waitClick(MatchInfo matchInfo, int clickCount);
 }
