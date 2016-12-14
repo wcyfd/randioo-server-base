@@ -5,30 +5,33 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.mina.core.session.IoSession;
 
-import com.google.protobuf.GeneratedMessage;
+import com.randioo.randioo_server_base.cache.SessionCache;
 import com.randioo.randioo_server_base.entity.Ref;
+import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.module.BaseService;
 import com.randioo.randioo_server_base.net.CacheLockUtil;
 
 public class LoginModelServiceImpl extends BaseService implements LoginModelService {
-	private LoginHandler<?> loginHandler;
+	private LoginHandler loginHandler;
 
-	public void setLoginHandler(LoginHandler<?> loginHandler) {
+	public void setLoginHandler(LoginHandler loginHandler) {
 		this.loginHandler = loginHandler;
 	}
 
 	@Override
 	public Object login(Object msg) {
 		String account = loginHandler.getLoginAccount(msg);
-		
-		GeneratedMessage checkCanLoginMessage = loginHandler.checkLoginAccountCanLogin(account);
-		if (checkCanLoginMessage != null) {
-			return checkCanLoginMessage;
+
+		Ref<Object> canLoginErrorMessage = new Ref<>();
+		boolean canLogin = loginHandler.checkLoginAccountCanLogin(account, canLoginErrorMessage);
+
+		if (!canLogin) {
+			return canLoginErrorMessage.get();
 		}
-		
+
 		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
 		reentrantLock.lock();
-		
+
 		Object message = null;
 		try {
 			message = loginHandler.isNewAccount(account);
@@ -45,9 +48,10 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, loginHandler.getCreateRoleAccount(msg));
 		reentrantLock.lock();
 		try {
-			Object checkCreateRoleAccountResult = loginHandler.checkCreateRoleAccount(msg);
-			if (checkCreateRoleAccountResult != null) {
-				return checkCreateRoleAccountResult;
+			Ref<Object> checkCreateRoleAccountMessage = new Ref<>();
+			boolean canCreateRole = loginHandler.checkCreateRoleAccount(msg, checkCreateRoleAccountMessage);
+			if (!canCreateRole) {
+				return checkCreateRoleAccountMessage.get();
 			}
 
 			Connection conn = null;
@@ -93,33 +97,38 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	@Override
-	public Object getRoleData(Object requestMessage, IoSession ioSession) {		
-		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, loginHandler.getRoleDataAccount(requestMessage));
+	public Object getRoleData(Object requestMessage, IoSession ioSession) {
+		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class,
+				loginHandler.getRoleDataAccount(requestMessage));
 		reentrantLock.lock();
 
 		try {
-			Ref ref = new Ref();
-			Object resultMessage = loginHandler.getRoleObjectFromCollectionsByGeneratedMessage(ref,requestMessage);
-			if (resultMessage != null) {
-				return resultMessage;
+			Ref<RoleInterface> ref = new Ref<>();
+			Ref<Object> errorMessage = new Ref<>();
+			boolean hasRole = loginHandler.getRoleObject(ref, requestMessage,
+					errorMessage);
+			if (!hasRole) {
+				return errorMessage.get();
 			}
 
-			IoSession oldSession = loginHandler.getSessionByRef(ref);
+			IoSession oldSession = SessionCache.getSessionById(ref.get().getRoleId());
+			
 			if (oldSession != null) { // 该账号已登录
 				if (oldSession.isConnected()) {
-					Object connectingErrorMessage = loginHandler.connectingError();
-					if (connectingErrorMessage != null) {
-						return connectingErrorMessage;
+					Ref<Object> connectingErrorMessage = new Ref<>();
+					boolean connectingError = loginHandler.connectingError(connectingErrorMessage);
+					if (!connectingError) {
+						return connectingErrorMessage.get();
 					}
 				}
-				oldSession.setAttribute(loginHandler.getIoSessionTag(), null);
+				oldSession.setAttribute("roleId", null);
 				oldSession.close(false);
 			}
 
 			// session绑定ID
-			ioSession.setAttribute(loginHandler.getIoSessionTag(), loginHandler.getIoSessionAttributeValue(ref));
+			ioSession.setAttribute("roleId",ref.get().getRoleId());
 			// session放入缓存
-			loginHandler.recordSession(ref, ioSession);
+			SessionCache.addSession(ref.get().getRoleId(), ioSession);
 
 			return loginHandler.getRoleData(ref);
 		} catch (Exception e) {

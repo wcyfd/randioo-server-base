@@ -3,12 +3,10 @@ package com.randioo.randioo_server_base.module.login;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import org.apache.mina.core.session.IoSession;
-
-import com.google.protobuf.GeneratedMessage;
 import com.randioo.randioo_server_base.entity.Ref;
+import com.randioo.randioo_server_base.entity.RoleInterface;
 
-public interface LoginHandler<T> {
+public interface LoginHandler {
 	/**
 	 * 获得登录帐号
 	 * 
@@ -17,6 +15,16 @@ public interface LoginHandler<T> {
 	 * @author wcy 2016年11月30日
 	 */
 	String getLoginAccount(Object loginMessage);
+
+	/**
+	 * 检查该帐号是否可以进行登录
+	 * 
+	 * @param account
+	 * @param message
+	 * @return
+	 * @author wcy 2016年12月13日
+	 */
+	boolean checkLoginAccountCanLogin(String account, Ref<Object> loginMessage);
 
 	/**
 	 * 是否是新的帐号
@@ -43,14 +51,14 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	Object checkCreateRoleAccount(Object createRoleMessage);
+	boolean checkCreateRoleAccount(Object createRoleMessage, Ref<Object> checkCreateRoleAccountMessage);
 
 	/**
 	 * 获得数据库连接
 	 * 
 	 * @return
 	 * @author wcy 2016年11月30日
-	 * @throws SQLException 
+	 * @throws SQLException
 	 */
 	Connection getConnection() throws SQLException;
 
@@ -67,7 +75,7 @@ public interface LoginHandler<T> {
 	/**
 	 * 获得玩家信息
 	 */
-	Object getRoleData(Ref<T> ref);
+	Object getRoleData(Ref<RoleInterface> ref);
 
 	/**
 	 * 需要获得信息的玩家账号
@@ -85,33 +93,8 @@ public interface LoginHandler<T> {
 	 * @author wcy 2016年11月30日
 	 * @param requestMessage
 	 */
-	Object getRoleObjectFromCollectionsByGeneratedMessage(Ref<T> ref, Object requestMessage);
-
-	/**
-	 * session的标记标签
-	 * 
-	 * @return
-	 * @author wcy 2016年11月30日
-	 */
-	String getIoSessionTag();
-
-	/**
-	 * 获得session的值
-	 * 
-	 * @param ref
-	 * @return
-	 * @author wcy 2016年11月30日
-	 */
-	Object getIoSessionAttributeValue(Ref<T> ref);
-
-	/**
-	 * 通过地址内的对象获得Session
-	 * 
-	 * @param ref
-	 * @return
-	 * @author wcy 2016年11月30日
-	 */
-	IoSession getSessionByRef(Ref<T> ref);
+	boolean getRoleObject(Ref<RoleInterface> ref, Object requestMessage,
+			Ref<Object> errorMessage);
 
 	/**
 	 * 用户已经在某地连接的错误,如果不处理则返回null
@@ -119,16 +102,6 @@ public interface LoginHandler<T> {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	Object connectingError();
+	boolean connectingError(Ref<Object> connectingErrorMessage);
 
-	/**
-	 * 记录session
-	 * 
-	 * @param ref
-	 * @param session
-	 * @author wcy 2016年11月30日
-	 */
-	void recordSession(Ref<T> ref, IoSession session);
-
-	GeneratedMessage checkLoginAccountCanLogin(String account);
 }

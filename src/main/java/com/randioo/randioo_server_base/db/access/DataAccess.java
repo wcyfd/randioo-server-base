@@ -148,7 +148,7 @@ public abstract class DataAccess {
 			conn.close();
 		}
 	}
-
+	
 	/**
 	 * 查询单个结果
 	 * 
@@ -201,6 +201,48 @@ public abstract class DataAccess {
 			rs.close();
 			return list;
 		} finally {
+			conn.close();
+		}
+	}
+
+	/**
+	 * 执行命令不关闭连接
+	 * 
+	 * @param sql
+	 * @param conn
+	 * @param params
+	 * @return
+	 * @throws DataAccessException
+	 * @throws SQLException
+	 * @author wcy 2016年12月14日
+	 */
+	protected boolean executeNotCloseConn(String sql,Connection conn)
+			throws DataAccessException, SQLException {
+		PreparedStatement pstmt = getPreparedStatement(sql, conn);
+		boolean result = execute(pstmt, conn);
+		pstmt.close();
+		return result;
+	}
+
+	/**
+	 * 执行命令
+	 * 
+	 * @param sql
+	 * @param conn
+	 * @param params
+	 * @return
+	 * @throws DataAccessException
+	 * @throws SQLException
+	 * @author wcy 2016年12月14日
+	 */
+	protected boolean execute(String sql,Connection conn)
+			throws DataAccessException, SQLException {
+		try{
+			PreparedStatement pstmt = getPreparedStatement(sql, conn);
+			boolean result = execute(pstmt, conn);
+			pstmt.close();
+			return result;
+		}finally{
 			conn.close();
 		}
 	}
@@ -290,6 +332,16 @@ public abstract class DataAccess {
 			throw new DataAccessException(e);
 		}
 	}
+	
+	private boolean execute(PreparedStatement pstmt,Connection conn)
+			throws DataAccessException, SQLException {
+		try{
+			return pstmt.execute();
+		}catch(SQLException e){
+			e.printStackTrace();
+			throw new DataAccessException(e);
+		}
+	}
 
 	/**
 	 * 执行查询操作
@@ -307,7 +359,8 @@ public abstract class DataAccess {
 		PreparedStatement pstmt = getPreparedStatement(sql, conn, params);
 		return executeQuery(pstmt, conn);
 	}
-
+	
+	
 	/**
 	 * 移动到下一行记录
 	 * 
@@ -342,5 +395,6 @@ public abstract class DataAccess {
 			throw new DataAccessException(e);
 		}
 	}
+	
 
 }
