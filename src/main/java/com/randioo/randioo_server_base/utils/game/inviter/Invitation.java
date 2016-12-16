@@ -1,7 +1,7 @@
 package com.randioo.randioo_server_base.utils.game.inviter;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -11,15 +11,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author wcy 2016年12月7日
  *
  */
-public class Invitation<T> {
+public class Invitation {
 	private int size;
 
-	private T starter;
-
-	private Map<T, Boolean> invitationMap = new HashMap<>();
+	/** 成功邀请的列表 */
+	private List<Invitable> inviteSuccessList = new ArrayList<>();
 
 	private Lock lock = new ReentrantLock();
-	
+
 	private boolean cancel;
 
 	public Lock getLock() {
@@ -34,18 +33,6 @@ public class Invitation<T> {
 		return size;
 	}
 
-	public Map<T, Boolean> getInvitationMap() {
-		return invitationMap;
-	}
-
-	public T getStarter() {
-		return starter;
-	}
-
-	public void setStarter(T starter) {
-		this.starter = starter;
-	}
-
 	public boolean isCancel() {
 		return cancel;
 	}
@@ -53,4 +40,9 @@ public class Invitation<T> {
 	public void setCancel(boolean cancel) {
 		this.cancel = cancel;
 	}
+
+	public List<Invitable> getInviteSuccessList() {
+		return inviteSuccessList;
+	}
+
 }
