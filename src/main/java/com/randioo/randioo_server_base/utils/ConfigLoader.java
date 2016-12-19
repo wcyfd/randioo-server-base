@@ -2,6 +2,7 @@ package com.randioo.randioo_server_base.utils;
 
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.ByteBuffer;
@@ -36,6 +37,9 @@ public class ConfigLoader {
 				}
 
 			}
+		} catch (FileNotFoundException e1) {
+			System.out.println("no found config file : " + zipPathName);
+			return;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}

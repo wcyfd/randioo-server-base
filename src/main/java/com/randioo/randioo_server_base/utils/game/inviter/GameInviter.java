@@ -17,6 +17,9 @@ public class GameInviter {
 	 * @author wcy 2016年12月7日
 	 */
 	public synchronized void newInvitation(Invitable starter, int count) {
+		if(starter == null){
+			return;
+		}
 		Invitation invitation = new Invitation();
 		invitation.setSize(count);
 		invitation.getInviteSuccessList().add(starter);
