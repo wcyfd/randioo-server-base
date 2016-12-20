@@ -1,112 +1,55 @@
 package com.randioo.randioo_server_base;
 
+import java.lang.reflect.Field;
+
+import com.randioo.randioo_server_base.utils.ReflectUtils;
+import com.randioo.randioo_server_base.utils.game.record.GameRecorder;
+import com.randioo.randioo_server_base.utils.game.record.RefRecordInfo;
+import com.randioo.randioo_server_base.utils.game.record.ValueRecordInfo;
 
 /**
  * Hello world!
  *
  */
-public class App 
-{
-    public static void main( String[] args )
-    {
+public class App {
+	public static void main(String[] args) {
 		System.out.println("Hello World!");
+		GameRecorder g = new GameRecorder();
+
+		Role role = new Role();
+		War war = new War();
+		war.setPoint(20);
+		role.setWar(war);
+		System.out.println(role.getMoney());
+
+		g.addRecord(role,
+				new ValueRecordInfo(ReflectUtils.getMethod(Role.class, "setMoney", int.class), role, role.getMoney()));
+		g.addRecord(role, new RefRecordInfo<Role>(role) {
+			private int point;
+
+			@Override
+			public void record() {
+				point = t.getWar().getPoint();
+			}
+
+			@Override
+			public void reset() {
+				t.getWar().setPoint(point);
+			}
+
+		});
+
+		System.out.println(role.getMoney());
+		System.out.println(role.getWar().getPoint());
+		role.setMoney(34);
+		role.getWar().setPoint(50);
+		System.out.println(role.getMoney());
+		System.out.println(role.getWar().getPoint());
+		g.clearRecord(role);
 		
-//		GameMatcher gameMatcher = new GameMatcher();
-//		gameMatcher.setThreadSize(5);
-//		gameMatcher.setMatchHandler(new MatchHandler() {
-//			
-//			@Override
-//			public boolean needWaitMatch(MatchInfo matchInfo) {
-//				System.out.println("needWaitMatch");
-//				return true;
-//			}
-//			
-//			@Override
-//			public void matchSuccess(MatchInfo matchInfo, MatchRule matchRule) {
-//				System.out.println("matchSuccess");
-//			}
-//			
-//			@Override
-//			public boolean matchRule(MatchRule myMatchRule, MatchInfo otherMatchInfo) {
-//				// TODO Auto-generated method stub\
-//				System.out.println("matchRule");
-//				return true;
-//			}
-//			
-//			@Override
-//			public void matchComplete(MatchInfo matchInfo) {
-//				// TODO Auto-generated method stub
-//				System.out.println("matchComplete");
-//			}
-//			
-//			@Override
-//			public MatchRule getAutoMatchRole(MatchInfo matchInfo) {
-//				System.out.println("getAutoMatchRole");
-//				MatchRule matchRule = new MatchRule();
-//				matchRule.setMatchNPC(false);
-//				matchRule.setMatchTarget(new Matcher());
-//				matchRule.setPlayerCount(2);
-//				matchRule.setWaitTime(5);
-//				matchRule.setWaitUnit(TimeUnit.SECONDS);
-//				return matchRule;
-//			}
-//			
-//			@Override
-//			public void destroyMatchInfo(MatchInfo matchInfo) {
-//				// TODO Auto-generated method stub
-//				System.out.println("destroyMatchInfo");
-//			}
-//			
-//			@Override
-//			public MatchInfo createMatchInfo(MatchRule matchRule) {
-//				// TODO Auto-generated method stub
-//				System.out.println("createMatchInfo");
-//				return new MatchInfo();
-//			}
-//
-//			@Override
-//			public void cancelMatch(Matchable matchable) {
-//				// TODO Auto-generated method stub
-//				System.out.println("cancel match success");
-//			}
-//
-//			@Override
-//			public void changeStartMatcher(Matchable originStarter, Matchable newStarter) {
-//				// TODO Auto-generated method stub
-//				
-//			}
-//
-//			@Override
-//			public void waitClick(MatchInfo matchInfo, int clickCount) {
-//				// TODO Auto-generated method stub
-//				
-//			}
-//		});
-//		
-//		Matcher matcher = new Matcher();
-//    
-//		MatchRule matchRule = new MatchRule();
-//		matchRule.setMatchNPC(false);
-//		matchRule.setMatchTarget(matcher);
-//		matchRule.setPlayerCount(2);
-//		matchRule.setWaitTime(10);
-//		matchRule.setWaitUnit(TimeUnit.SECONDS);
-//		
-//		gameMatcher.matchRole(matchRule);
-//		
-//		try {
-//			Thread.sleep(2000);
-//		} catch (InterruptedException e) {
-//			// TODO Auto-generated catch block
-//			e.printStackTrace();
-//		}
-//		gameMatcher.cancelMatch(matcher);
-//		
-//		while(true){
-//			Scanner in = new Scanner(System.in);
-//			String line = in.nextLine();
-//			System.out.println("");
-//		}
-    }
-    
+		g.resetRecord(role);
+		System.out.println(role.getMoney());
+		System.out.println(role.getWar().getPoint());
+
+	}
 }
