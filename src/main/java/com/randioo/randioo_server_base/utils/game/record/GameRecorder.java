@@ -4,6 +4,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.randioo.randioo_server_base.Role;
 import com.randioo.randioo_server_base.utils.ReflectUtils;
 
 public class GameRecorder {
@@ -32,15 +33,28 @@ public class GameRecorder {
 
 	/**
 	 * 添加一条记录
+	 * 
 	 * @param recordable
 	 * @param recordInfo
 	 * @author wcy 2016年12月20日
 	 */
-	public void addRecord(Recordable recordable, AbstractRecordInfo recordInfo) {		
+	public void addRecord(Recordable recordable, AbstractRecordInfo recordInfo) {
 		RecordPoint point = this.getRecordPoint(recordable);
 		point.getRecordInfoList().add(0, recordInfo);
 	}
-	
+
+	/**
+	 * 适用于基本数据类型的记录
+	 * 
+	 * @param recordable
+	 * @param method
+	 * @param target
+	 * @param params
+	 * @author wcy 2016年12月20日
+	 */
+	public void addRecord(Recordable recordable, Method method, Object target, Object... params) {
+		addRecord(recordable, new ValueRecordInfo(method, target, params));
+	}
 
 	/**
 	 * 清楚记录

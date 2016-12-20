@@ -1,11 +1,8 @@
 package com.randioo.randioo_server_base;
 
-import java.lang.reflect.Field;
-
 import com.randioo.randioo_server_base.utils.ReflectUtils;
 import com.randioo.randioo_server_base.utils.game.record.GameRecorder;
 import com.randioo.randioo_server_base.utils.game.record.RefRecordInfo;
-import com.randioo.randioo_server_base.utils.game.record.ValueRecordInfo;
 
 /**
  * Hello world!
@@ -22,8 +19,7 @@ public class App {
 		role.setWar(war);
 		System.out.println(role.getMoney());
 
-		g.addRecord(role,
-				new ValueRecordInfo(ReflectUtils.getMethod(Role.class, "setMoney", int.class), role, role.getMoney()));
+		g.addRecord(role, ReflectUtils.getMethod(Role.class, "setMoney", int.class), role, role.getMoney());
 		g.addRecord(role, new RefRecordInfo<Role>(role) {
 			private int point;
 
@@ -45,8 +41,8 @@ public class App {
 		role.getWar().setPoint(50);
 		System.out.println(role.getMoney());
 		System.out.println(role.getWar().getPoint());
-		g.clearRecord(role);
-		
+		// g.clearRecord(role);
+
 		g.resetRecord(role);
 		System.out.println(role.getMoney());
 		System.out.println(role.getWar().getPoint());
