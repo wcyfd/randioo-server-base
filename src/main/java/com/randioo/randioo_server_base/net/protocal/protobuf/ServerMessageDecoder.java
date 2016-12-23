@@ -10,39 +10,6 @@ import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
 public class ServerMessageDecoder extends CumulativeProtocolDecoder {
 	protected boolean doDecode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws Exception {
-
-//		in.order(ByteOrder.LITTLE_ENDIAN);
-//
-//		int remaining = in.remaining();
-//		if (remaining >= 4) {
-//			in.mark();
-//
-//			int size = in.getInt();
-//			if (size > 2048) {
-//				// throw new NumberFakeException("msg size too long");
-//			}
-//
-//			if (size > in.remaining()) {
-//				in.reset();
-//				return false;
-//			}
-//
-//			byte[] data = new byte[size];
-//
-//			in.get(data);
-//
-//			IoBuffer params = IoBuffer.wrap(data);
-//			params.order(ByteOrder.LITTLE_ENDIAN);
-//
-//			out.write(data);
-//
-//			if (in.remaining() > 0) {
-//				return true;
-//			}
-//
-//		}
-//
-//		return false;
 		
 		in.order(ByteOrder.LITTLE_ENDIAN);
 
