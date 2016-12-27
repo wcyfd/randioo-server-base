@@ -2,7 +2,6 @@ package com.randioo.randioo_server_base.entity;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.PriorityBlockingQueue;
 import java.util.concurrent.locks.Lock;
@@ -54,7 +53,7 @@ public class ActionQueue {
 
 	}
 
-	public GeneratedMessage poll() {
+	public Object poll() {
 
 		GameEvent orderWrapper = inner.poll();
 		if (orderWrapper == null) {

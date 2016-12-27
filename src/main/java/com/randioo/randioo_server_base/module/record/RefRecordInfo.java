@@ -1,4 +1,4 @@
-package com.randioo.randioo_server_base.utils.game.record;
+package com.randioo.randioo_server_base.module.record;
 
 public abstract class RefRecordInfo<T> extends AbstractRecordInfo {
 

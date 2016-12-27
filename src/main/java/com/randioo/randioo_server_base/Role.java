@@ -1,6 +1,6 @@
 package com.randioo.randioo_server_base;
 
-import com.randioo.randioo_server_base.utils.game.record.Recordable;
+import com.randioo.randioo_server_base.module.record.Recordable;
 
 /**
  * Hello world!

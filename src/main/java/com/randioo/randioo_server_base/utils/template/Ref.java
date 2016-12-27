@@ -1,4 +1,4 @@
-package com.randioo.randioo_server_base.entity;
+package com.randioo.randioo_server_base.utils.template;
 
 public class Ref<T> {
 	private T obj = null;

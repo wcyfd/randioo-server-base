@@ -8,8 +8,9 @@ import com.randioo.randioo_server_base.utils.game.game_type.GameBase;
 public class RTSGame implements GameBase {
 	private ScheduledFuture<?> scheduledFuture = null;
 	private ActionQueue actionQueue = new ActionQueue();
-	private int frameNumber;
-	private int nextFrameNumber;
+	private int currentFrameNumber;
+//	private int nextFrameNumber;
+	protected int addDeltaFrame;
 
 	public ActionQueue getActionQueue() {
 		return actionQueue;
@@ -23,21 +24,24 @@ public class RTSGame implements GameBase {
 		return scheduledFuture;
 	}
 
-	public int getFrameNumber() {
-		return frameNumber;
+	public int getCurrentFrameNumber() {
+		return currentFrameNumber;
 	}
 
-	public void setFrameNumber(int frameNumber) {
-		this.frameNumber = frameNumber;
+	public void setCurrentFrameNumber(int currentFrameNumber) {
+		this.currentFrameNumber = currentFrameNumber;
 	}
 
-	public int getNextFrameNumber() {
-		return nextFrameNumber;
+	public int getAddDeltaFrame() {
+		return addDeltaFrame;
 	}
 
-	public void setNextFrameNumber(int nextFrameNumber) {
-		this.nextFrameNumber = nextFrameNumber;
-	}
-
+//	public int getNextFrameNumber() {
+//		return nextFrameNumber;
+//	}
+//
+//	public void setNextFrameNumber(int nextFrameNumber) {
+//		this.nextFrameNumber = nextFrameNumber;
+//	}
 
 }

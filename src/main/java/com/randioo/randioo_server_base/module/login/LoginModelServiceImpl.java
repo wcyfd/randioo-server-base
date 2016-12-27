@@ -6,10 +6,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.mina.core.session.IoSession;
 
 import com.randioo.randioo_server_base.cache.SessionCache;
-import com.randioo.randioo_server_base.entity.Ref;
 import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.module.BaseService;
 import com.randioo.randioo_server_base.net.CacheLockUtil;
+import com.randioo.randioo_server_base.utils.template.Ref;
 
 public class LoginModelServiceImpl extends BaseService implements LoginModelService {
 	private LoginHandler loginHandler;

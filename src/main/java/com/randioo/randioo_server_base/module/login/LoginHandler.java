@@ -3,8 +3,8 @@ package com.randioo.randioo_server_base.module.login;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-import com.randioo.randioo_server_base.entity.Ref;
 import com.randioo.randioo_server_base.entity.RoleInterface;
+import com.randioo.randioo_server_base.utils.template.Ref;
 
 public interface LoginHandler {
 	/**

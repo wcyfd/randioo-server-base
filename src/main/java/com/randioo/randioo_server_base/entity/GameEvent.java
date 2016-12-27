@@ -4,7 +4,7 @@ import com.google.protobuf.GeneratedMessage;
 
 public class GameEvent implements Comparable<GameEvent> {
 	private int executeFrameIndex;
-	private GeneratedMessage action;
+	private Object action;
 
 	public GameEvent() {
 	}
@@ -22,11 +22,11 @@ public class GameEvent implements Comparable<GameEvent> {
 		this.executeFrameIndex = executeFrameIndex;
 	}
 
-	public GeneratedMessage getAction() {
+	public Object getAction() {
 		return action;
 	}
 
-	public void setAction(GeneratedMessage action) {
+	public void setAction(Object action) {
 		this.action = action;
 	}
 

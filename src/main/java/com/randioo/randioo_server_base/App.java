@@ -1,8 +1,9 @@
 package com.randioo.randioo_server_base;
 
+import com.randioo.randioo_server_base.module.record.RecordModelService;
+import com.randioo.randioo_server_base.module.record.RecordModelServiceImpl;
+import com.randioo.randioo_server_base.module.record.RefRecordInfo;
 import com.randioo.randioo_server_base.utils.ReflectUtils;
-import com.randioo.randioo_server_base.utils.game.record.GameRecorder;
-import com.randioo.randioo_server_base.utils.game.record.RefRecordInfo;
 
 /**
  * Hello world!
@@ -11,7 +12,7 @@ import com.randioo.randioo_server_base.utils.game.record.RefRecordInfo;
 public class App {
 	public static void main(String[] args) {
 		System.out.println("Hello World!");
-		GameRecorder g = new GameRecorder();
+		RecordModelService g = new RecordModelServiceImpl();
 
 		Role role = new Role();
 		War war = new War();

@@ -6,10 +6,10 @@ package com.randioo.randioo_server_base.utils.game;
  * @author wcy 2016年12月13日
  *
  */
-public class GameIdCreator {
-	private static int id = 0;
+public class IdCreator {
+	private int id = 0;
 
-	public static synchronized int getId() {
+	public synchronized int getId() {
 		id++;
 		return id;
 	}
