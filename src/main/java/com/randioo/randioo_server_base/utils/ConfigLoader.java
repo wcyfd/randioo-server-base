@@ -35,6 +35,7 @@ public class ConfigLoader {
 						| NoSuchMethodException | SecurityException e) {
 					e.printStackTrace();
 				}
+				baos.close();
 
 			}
 		} catch (FileNotFoundException e1) {

@@ -5,6 +5,44 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 public class ReflectUtils {
+
+	/**
+	 * 实例化
+	 * 
+	 * @param clazz
+	 * @return
+	 * @author wcy 2016年12月28日
+	 */
+	public static <T> T newInstance(Class<T> clazz) {
+		try {
+			T t = (T) clazz.newInstance();
+			return t;
+		} catch (InstantiationException | IllegalAccessException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 实例化
+	 * 
+	 * @param className
+	 * @return
+	 * @author wcy 2016年12月28日
+	 */
+	public static <T> T newInstance(String className) {
+		try {
+			@SuppressWarnings("unchecked")
+			Class<T> clazz = (Class<T>) Class.forName(className);
+			return newInstance(clazz);
+		} catch (ClassNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
 	/**
 	 * 获得方法
 	 * 
@@ -94,6 +132,7 @@ public class ReflectUtils {
 	 * @param field
 	 * @return
 	 */
+	@SuppressWarnings("unchecked")
 	public static <T> T getStaticFieldValue(Field field) {
 		try {
 			return (T) field.get(null);
