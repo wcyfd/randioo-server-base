@@ -8,7 +8,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolEncoderAdapter;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 
-import com.google.protobuf.CodedInputStream;
 import com.google.protobuf.GeneratedMessage;
 
 public class ServerMessageEncoder extends ProtocolEncoderAdapter {

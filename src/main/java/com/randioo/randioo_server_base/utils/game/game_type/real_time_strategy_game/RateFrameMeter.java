@@ -3,17 +3,20 @@ package com.randioo.randioo_server_base.utils.game.game_type.real_time_strategy_
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.mina.core.service.IoService;
+import org.apache.mina.core.session.IoSession;
+
 import com.randioo.randioo_server_base.entity.ActionQueue;
 import com.randioo.randioo_server_base.entity.GameEvent;
 import com.randioo.randioo_server_base.utils.template.Function;
 
 public class RateFrameMeter {
+	/** 回调函数 */
+	private Function callback;
 
-
-
-	public void sendKeyFrame(RTSGame game, Function function) {
+	public void sendKeyFrame(RTSGame game) {
 		// send1(game, function);
-		send2(game, function);
+		send2(game);
 	}
 
 	// private void send1(RTSGame game, Function function) {
@@ -54,7 +57,7 @@ public class RateFrameMeter {
 	// function.apply(logicFrames);
 	// }
 
-	private void send2(RTSGame game, Function function) {
+	private void send2(RTSGame game) {
 		ActionQueue actionQueue = game.getActionQueue();
 		int currentFrameNumber = game.getCurrentFrameNumber();
 		// int nextFrameNumber = game.getNextFrameNumber();
@@ -66,7 +69,7 @@ public class RateFrameMeter {
 		// 用于加入没有刷到的过时帧事件
 		List<GameEvent> deleteGameEvents = new ArrayList<>(gameEvents.size());
 
-		List<LogicFrame> logicFrames = new ArrayList<>();
+		List<LogicFrame> logicFrames = new ArrayList<>(game.getAddDeltaFrame());
 		for (int frame = currentFrameNumber; frame < nextFrameNumber; frame++) {
 			LogicFrame logicFrame = new LogicFrame();
 			logicFrame.setFrameIndex(frame);
@@ -90,6 +93,17 @@ public class RateFrameMeter {
 		// game.setNextFrameNumber(nextFrameNumber + game.getAddDeltaFrame());
 		if (logicFrames.size() == 0)
 			return;
-		function.apply(logicFrames);
+		if (callback != null)
+			callback.apply(game,logicFrames);
+		
 	}
+
+	public Function getCallback() {
+		return callback;
+	}
+
+	public void setCallback(Function callback) {
+		this.callback = callback;
+	}
+
 }

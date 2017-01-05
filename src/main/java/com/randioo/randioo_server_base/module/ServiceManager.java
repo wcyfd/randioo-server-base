@@ -4,17 +4,17 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ServiceManager {
-	private List<BaseService> services = new ArrayList<>();
+	private List<BaseServiceInterface> services = new ArrayList<>();
 
-	public void setServices(List<BaseService> services) {
+	public void setServices(List<BaseServiceInterface> services) {
 		this.services = services;
 	}
-	public List<BaseService> getServices() {
+	public List<BaseServiceInterface> getServices() {
 		return services;
 	}
 
 	public void initServices() {
-		for (BaseService baseService : services) {
+		for (BaseServiceInterface baseService : services) {
 			baseService.init();
 			baseService.initNavigation();
 		}
