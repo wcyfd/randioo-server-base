@@ -1,18 +1,13 @@
 package com.randioo.randioo_server_base.net;
 
 import java.net.InetSocketAddress;
-import java.nio.charset.Charset;
 
 import org.apache.mina.core.RuntimeIoException;
 import org.apache.mina.core.filterchain.IoFilter;
 import org.apache.mina.core.future.ConnectFuture;
 import org.apache.mina.core.service.IoConnector;
 import org.apache.mina.core.session.IoSession;
-import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
-
-import com.randioo.randioo_server_base.net.protocal.randioo.Message;
-import com.randioo.randioo_server_base.net.protocal.randioo.MessageCodecFactory;
 
 public class WanClient {
 	public enum WanClientType {
@@ -22,11 +17,6 @@ public class WanClient {
 	private IoSession session = null;
 	private IoConnector connector = null;
 	private InetSocketAddress inetSocketAddress = null;
-
-	public void startClient(IoHandlerAdapter handler, InetSocketAddress inetSocketAddress, WanClientType type) {
-		this.startClient(new ProtocolCodecFilter(new MessageCodecFactory(Charset.forName("UTF-8"))), handler,
-				inetSocketAddress, type);
-	}
 
 	public void startClient(IoFilter ioFilter, IoHandlerAdapter handler, InetSocketAddress inetSocketAddress,
 			WanClientType type) {
