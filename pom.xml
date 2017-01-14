@@ -69,11 +69,11 @@
 
 		<!-- jbox2d -->
 		<!-- https://mvnrepository.com/artifact/org.jbox2d/jbox2d-library -->
-		<dependency>
+	<!-- 	<dependency>
 			<groupId>org.jbox2d</groupId>
 			<artifactId>jbox2d-library</artifactId>
 			<version>2.2.1.1</version>
-		</dependency>
+		</dependency> -->
 
 		<!-- db -->
 		<!-- https://mvnrepository.com/artifact/com.jolbox/bonecp -->
@@ -152,18 +152,18 @@
 
 		<!-- reader -->
 		<!-- https://mvnrepository.com/artifact/dom4j/dom4j -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>dom4j</groupId>
 			<artifactId>dom4j</artifactId>
 			<version>1.6.1</version>
-		</dependency>
+		</dependency> -->
 
 		<!-- https://mvnrepository.com/artifact/org.json/json -->
-		<dependency>
+		<!-- <dependency>
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20160810</version>
-		</dependency>
+		</dependency> -->
 		
 		<!-- https://mvnrepository.com/artifact/com.google.protobuf/protobuf-java -->
 		<dependency>
@@ -226,6 +226,6 @@
 			<groupId>org.springframework</groupId>
 			<artifactId>spring-tx</artifactId>
 			<version>3.1.0.RELEASE</version>
-		</dependency>		
+		</dependency>
 	</dependencies>
 </project>
