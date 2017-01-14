@@ -13,6 +13,12 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ConfigLoader {
+	/**
+	 * 
+	 * @param packName "com.randioo.demo_optimisticframe_server.entity.file"
+	 * @param zipPathName "./config.zip"
+	 * @author wcy 2017年1月10日
+	 */
 	public static void loadConfig(String packName, String zipPathName) {
 		Map<String, Class<?>> classesMap = getClassesMap(packName);
 
@@ -50,13 +56,15 @@ public class ConfigLoader {
 	public static Map<String,Class<?>> getClassesMap(String packName){
 		List<Class<?>> classes = PackageUtil.getClasses(packName);
 		Map<String, Class<?>> classesMap = new HashMap<>();
-		try {
-			for (Class<?> clazz : classes) {
+
+		for (Class<?> clazz : classes) {
+			try {
 				classesMap.put((String) clazz.getDeclaredField("urlKey").get(null), clazz);
+			} catch (Exception e) {
+				System.out.println(clazz.getSimpleName()+" no urlkey");
 			}
-		} catch (Exception e) {
-			e.printStackTrace();
 		}
+
 		return classesMap;
 	}
 }

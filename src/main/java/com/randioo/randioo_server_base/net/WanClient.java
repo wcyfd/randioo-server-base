@@ -11,7 +11,6 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.ProtocolCodecFilter;
 import org.apache.mina.transport.socket.nio.NioSocketConnector;
 
-import com.randioo.randioo_server_base.net.protocal.randioo.Message;
 import com.randioo.randioo_server_base.net.protocal.randioo.MessageCodecFactory;
 
 public class WanClient {
