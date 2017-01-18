@@ -3,6 +3,9 @@ package com.randioo.randioo_server_base.module.login;
 import java.sql.Connection;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.apache.ibatis.session.ExecutorType;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.mina.core.session.IoSession;
 
 import com.randioo.randioo_server_base.cache.SessionCache;
@@ -55,18 +58,18 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 				return checkCreateRoleAccountMessage.get();
 			}
 
-			Connection conn = null;
+			SqlSession conn = null;
 			try { // mysql事务
-				conn = loginHandler.getConnection();
-				if (conn != null) {
-					conn.setAutoCommit(false);
+				SqlSessionFactory factory = loginHandler.getSqlSessionFactory();
+				if(factory!=null){
+					conn = factory.openSession(ExecutorType.BATCH, false);
 				}
-
+				
 				Object createRoleResultProtobufMessage = loginHandler.createRole(conn, msg);
 
 				if (conn != null) {
 					conn.commit(); // 提交JDBC事务
-					conn.setAutoCommit(true); // 恢复JDBC事务的默认提交方式
+//					conn.setAutoCommit(true); // 恢复JDBC事务的默认提交方式
 				}
 
 				return createRoleResultProtobufMessage;

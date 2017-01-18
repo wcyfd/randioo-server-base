@@ -1,7 +1,9 @@
 package com.randioo.randioo_server_base.module.login;
 
-import java.sql.Connection;
 import java.sql.SQLException;
+
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
 
 import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.utils.template.Ref;
@@ -60,7 +62,7 @@ public interface LoginHandler {
 	 * @author wcy 2016年11月30日
 	 * @throws SQLException
 	 */
-	Connection getConnection() throws SQLException;
+	SqlSessionFactory getSqlSessionFactory() throws SQLException;
 
 	/**
 	 * 创建帐号
@@ -70,7 +72,7 @@ public interface LoginHandler {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	Object createRole(Connection conn, Object createRoleMessage);
+	Object createRole(SqlSession sqlSession, Object createRoleMessage);
 
 	/**
 	 * 获得玩家信息
