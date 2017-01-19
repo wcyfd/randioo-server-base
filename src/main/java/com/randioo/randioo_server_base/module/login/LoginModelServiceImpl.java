@@ -1,12 +1,12 @@
 package com.randioo.randioo_server_base.module.login;
 
-import java.sql.Connection;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.ibatis.session.ExecutorType;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.mina.core.session.IoSession;
+import org.springframework.stereotype.Service;
 
 import com.randioo.randioo_server_base.cache.SessionCache;
 import com.randioo.randioo_server_base.entity.RoleInterface;
@@ -14,6 +14,7 @@ import com.randioo.randioo_server_base.module.BaseService;
 import com.randioo.randioo_server_base.net.CacheLockUtil;
 import com.randioo.randioo_server_base.utils.template.Ref;
 
+@Service("loginModelService")
 public class LoginModelServiceImpl extends BaseService implements LoginModelService {
 	private LoginHandler loginHandler;
 

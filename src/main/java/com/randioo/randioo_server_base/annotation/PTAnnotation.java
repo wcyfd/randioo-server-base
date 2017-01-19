@@ -1,4 +1,4 @@
-package com.randioo.randioo_server_base.net;
+package com.randioo.randioo_server_base.annotation;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
