@@ -3,6 +3,7 @@ package com.randioo.randioo_server_base.utils;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.IOException;
 
 import javax.script.Invocable;
 import javax.script.ScriptEngine;
@@ -10,40 +11,30 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 public class JSInvoker {
-	private static JSInvoker jsInvoker = null;
 	private ScriptEngine engine;
-	private File file;
+	private String fileName = null;
 
-	private JSInvoker() {
-
-	}
-
-	public synchronized static JSInvoker getInstance() {
-		if (jsInvoker == null) {
-			jsInvoker = new JSInvoker();
-			jsInvoker.init("./function.js");
-		}
-		return jsInvoker;
-	}
-
-	private void init(String filename) {		
+	public JSInvoker() {
 		ScriptEngineManager manager = new ScriptEngineManager();
 		engine = manager.getEngineByName("js");
-		
-		file = new File(filename);
-		this.refreshScript();
 	}
-	
-	public void refreshScript(){
-		try {
-			FileReader reader = new FileReader(file);
-			engine.eval(reader);
+
+	private void init() {
+		File file = new File(fileName);
+		try(FileReader reader = new FileReader(file)) {
+			engine.eval(reader);			
 		} catch (ScriptException | FileNotFoundException e) {
 			e.printStackTrace();
+		} catch (IOException e1) {
+			e1.printStackTrace();
 		}
 	}
 
-	public Object invoke(String functionName ,Object... param) {
+	public void setFileName(String fileName) {
+		this.fileName = fileName;
+	}
+
+	public Object invoke(String functionName, Object... param) {
 		try {
 			if (engine instanceof Invocable) {
 				Invocable invoke = (Invocable) engine;
@@ -55,12 +46,5 @@ public class JSInvoker {
 			e.printStackTrace();
 		}
 		return null;
-	}
-	
-	public static void main(String[] args) {
-		JSInvoker invoker = JSInvoker.getInstance();
-		Object obj =invoker.invoke("getCatName");
-		System.out.println(obj);
-		
 	}
 }
