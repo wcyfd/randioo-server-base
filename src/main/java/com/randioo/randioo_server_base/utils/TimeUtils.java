@@ -8,11 +8,11 @@ import java.util.Date;
 public class TimeUtils {
 	private static final String yearFormat = "yyyy-MM-dd";
 	private static final DateFormat dateFormat = new SimpleDateFormat(yearFormat);
-	
-	public static int getNowTime(){
-		return (int)(System.currentTimeMillis()/1000);
+
+	public static int getNowTime() {
+		return (int) (System.currentTimeMillis() / 1000);
 	}
-	
+
 	/**
 	 * 获得今天的固定秒时间,timeStr必须是符合format格式的字符串
 	 * 
@@ -38,5 +38,16 @@ public class TimeUtils {
 		}
 
 		return 0;
+	}
+
+	/**
+	 * 获得当日时间
+	 * 
+	 * @return
+	 * @author wcy 2017年3月10日
+	 */
+	public static String getCurrentTimeStr() {
+		String date = dateFormat.format(new Date());
+		return date;
 	}
 }

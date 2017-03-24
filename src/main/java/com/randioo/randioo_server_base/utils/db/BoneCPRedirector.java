@@ -4,10 +4,13 @@ import java.lang.reflect.Field;
 
 import javax.sql.DataSource;
 
+import org.springframework.beans.factory.InitializingBean;
+
 import com.jolbox.bonecp.BoneCPDataSource;
 
-public class BoneCPRedirector {
+public class BoneCPRedirector implements InitializingBean {
 	private DataSource dataSource = null;
+	private String databaseName = null;
 
 	public void setDataSource(DataSource dataSource) {
 		this.dataSource = dataSource;
@@ -17,7 +20,7 @@ public class BoneCPRedirector {
 		return dataSource;
 	}
 
-	public void redirect(String jdbcUrl) {
+	private void redirect(String jdbcUrl) {
 		BoneCPDataSource boneCPDataSource = (BoneCPDataSource) dataSource;
 		try {
 			// 关闭所有连接池
@@ -37,5 +40,22 @@ public class BoneCPRedirector {
 
 		// 赋予新的url
 		boneCPDataSource.setJdbcUrl(jdbcUrl);
+	}
+
+	public String getDatabaseName() {
+		return databaseName;
+	}
+
+	public void setDatabaseName(String databaseName) {
+		this.databaseName = databaseName;
+	}
+
+	public void init() {
+		redirect(((BoneCPDataSource) dataSource).getJdbcUrl().replace("?", "/" + databaseName + "?"));
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		init();
 	}
 }

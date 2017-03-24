@@ -62,6 +62,22 @@ public class ReflectUtils {
 		return null;
 	}
 
+	public static Method[] getAllMethods(Class<?> clazz) {
+		return clazz.getMethods();
+	}
+
+	public static Object methodInvoke(Object target, Method method, Object... params) {
+		try {
+			Object obj = method.invoke(target, params);
+			return obj;
+		} catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+
+	}
+
 	/**
 	 * 调用方法，并返回结果
 	 * 

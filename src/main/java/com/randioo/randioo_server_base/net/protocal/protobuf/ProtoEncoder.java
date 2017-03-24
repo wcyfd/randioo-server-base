@@ -10,7 +10,7 @@ import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 
 import com.google.protobuf.GeneratedMessage;
 
-public class ServerMessageEncoder extends ProtocolEncoderAdapter {
+public class ProtoEncoder extends ProtocolEncoderAdapter {
 	public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws Exception {
 		GeneratedMessage sc = (GeneratedMessage) message;
 //		byte[] bytes = sc.toByteArray();

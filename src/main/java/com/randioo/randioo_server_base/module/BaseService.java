@@ -5,16 +5,17 @@ import java.util.List;
 import java.util.Map;
 
 import com.randioo.randioo_server_base.annotation.PTAnnotation;
+import com.randioo.randioo_server_base.annotation.PTStringAnnotation;
 import com.randioo.randioo_server_base.navigation.Navigation;
 import com.randioo.randioo_server_base.net.IActionSupport;
 import com.randioo.randioo_server_base.net.SpringContext;
 import com.randioo.randioo_server_base.utils.PackageUtil;
+import com.randioo.randioo_server_base.utils.StringUtils;
 
 public class BaseService implements BaseServiceInterface {
 
 	@Override
 	public void init() {
-		// TODO Auto-generated method stub
 
 	}
 
@@ -26,17 +27,15 @@ public class BaseService implements BaseServiceInterface {
 			Field field = Navigation.class.getDeclaredField("navigate");
 			field.setAccessible(true);
 			for (Class<?> clazz : classes) {
-				PTAnnotation pt = clazz.getAnnotation(PTAnnotation.class);
-				if (pt != null) {
+				String key = this.getKeyName(clazz);
+				if (key != null) {
 					try {
 						@SuppressWarnings("unchecked")
 						Map<String, IActionSupport> navigate = (Map<String, IActionSupport>) field.get(null);
-						String key = this.getRequestKeyName(pt.value());
-						IActionSupport action = (IActionSupport) SpringContext
-								.getBean(getActionInstanceSpringContextName(clazz));
+						IActionSupport action = (IActionSupport) SpringContext.getBean(StringUtils
+								.firstStrToLowerCase(clazz.getSimpleName()));
 						navigate.put(key, action);
 					} catch (IllegalArgumentException | IllegalAccessException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 				}
@@ -48,20 +47,22 @@ public class BaseService implements BaseServiceInterface {
 
 	}
 
-	private String getActionInstanceSpringContextName(Class<?> action) {
-		StringBuilder sb = new StringBuilder();
-		String name = action.getSimpleName();
-		String lowFirstStr = name.substring(0, 1).toLowerCase();
-		sb.append(lowFirstStr).append(name.substring(1, name.length()));
-		return sb.toString();
-	}
-
-	private String getRequestKeyName(Class<?> clazz) {
-		StringBuilder sb = new StringBuilder();
-		String name = clazz.getSimpleName();
-		String lowFirstStr = name.substring(0, 1).toLowerCase();
-		sb.append(lowFirstStr).append(name.substring(1, name.length()));
-		return sb.toString();
-
+	/**
+	 * 获得action的key
+	 * 
+	 * @param clazz
+	 * @return
+	 * @author wcy 2017年2月13日
+	 */
+	private String getKeyName(Class<?> clazz) {
+		String key = null;
+		PTAnnotation pt = clazz.getAnnotation(PTAnnotation.class);
+		PTStringAnnotation ptString = clazz.getAnnotation(PTStringAnnotation.class);
+		if (pt != null) {
+			key = pt.value().getSimpleName();
+		} else if (ptString != null) {
+			key = ptString.value();
+		}
+		return key;
 	}
 }

@@ -8,7 +8,7 @@ import org.apache.mina.core.session.IoSession;
 import org.apache.mina.filter.codec.CumulativeProtocolDecoder;
 import org.apache.mina.filter.codec.ProtocolDecoderOutput;
 
-public class ServerMessageDecoder extends CumulativeProtocolDecoder {
+public class ProtoDecoder extends CumulativeProtocolDecoder {
 	protected boolean doDecode(IoSession session, IoBuffer in, ProtocolDecoderOutput out) throws Exception {
 		
 		in.order(ByteOrder.LITTLE_ENDIAN);

@@ -5,9 +5,7 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.jolbox.bonecp.BoneCPDataSource;
-
-public class DatabaseInitialization {
+public class DatabaseInitialization{
 	private DataSource dataSource;
 	private String databaseName;
 	private List<String> sqls = new ArrayList<>();
@@ -46,6 +44,7 @@ public class DatabaseInitialization {
 
 		BoneCPRedirector director = new BoneCPRedirector();
 		director.setDataSource(dataSource);
-		director.redirect(((BoneCPDataSource) dataSource).getJdbcUrl().replace("?", "/" + databaseName + "?"));
+		director.setDatabaseName(databaseName);
+		director.init();
 	}
 }

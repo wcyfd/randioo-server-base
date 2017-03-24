@@ -3,7 +3,7 @@ package com.randioo.randioo_server_base.utils;
 import java.util.Random;
 
 public class RandomUtils {
-	private final static Random random = new Random();
+	private final static Random random = new Random(TimeUtils.getNowTime());
 
 	public static final int getRandomNum(int startIndex, int base) {
 		if (base <= 0) {

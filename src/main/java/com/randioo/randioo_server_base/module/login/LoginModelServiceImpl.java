@@ -2,20 +2,20 @@ package com.randioo.randioo_server_base.module.login;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-import org.apache.ibatis.session.ExecutorType;
-import org.apache.ibatis.session.SqlSession;
-import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.mina.core.session.IoSession;
 import org.springframework.stereotype.Service;
 
+import com.randioo.randioo_server_base.cache.RoleCache;
 import com.randioo.randioo_server_base.cache.SessionCache;
 import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.module.BaseService;
 import com.randioo.randioo_server_base.net.CacheLockUtil;
+import com.randioo.randioo_server_base.utils.TimeUtils;
 import com.randioo.randioo_server_base.utils.template.Ref;
 
 @Service("loginModelService")
 public class LoginModelServiceImpl extends BaseService implements LoginModelService {
+
 	private LoginHandler loginHandler;
 
 	@Override
@@ -24,118 +24,127 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	@Override
-	public Object login(Object msg) {
-		String account = loginHandler.getLoginAccount(msg);
-
-		Ref<Object> canLoginErrorMessage = new Ref<>();
-		boolean canLogin = loginHandler.checkLoginAccountCanLogin(account, canLoginErrorMessage);
-
-		if (!canLogin) {
-			return canLoginErrorMessage.get();
-		}
+	public boolean login(LoginInfo loginInfo) {
+		String account = loginInfo.getAccount();
 
 		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
 		reentrantLock.lock();
 
-		Object message = null;
+		boolean isNewAccount = false;
 		try {
-			message = loginHandler.isNewAccount(account);
+			isNewAccount = RoleCache.getRoleByAccount(loginInfo.getAccount()) == null;
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
 			reentrantLock.unlock();
 		}
-		return message;
+		return isNewAccount;
 	}
 
 	@Override
-	public Object creatRole(Object msg) {
-		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, loginHandler.getCreateRoleAccount(msg));
+	public boolean createRole(LoginCreateInfo loginCreateInfo, Ref<Integer> errorCode) {
+		String account = loginCreateInfo.getAccount();
+		// 双重检测帐号是否可以注册
+		if (!this.canCreate(loginCreateInfo, errorCode)) {
+			return false;
+		}
+
+		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
 		reentrantLock.lock();
 		try {
-			Ref<Object> checkCreateRoleAccountMessage = new Ref<>();
-			boolean canCreateRole = loginHandler.checkCreateRoleAccount(msg, checkCreateRoleAccountMessage);
-			if (!canCreateRole) {
-				return checkCreateRoleAccountMessage.get();
+			// 双重检测帐号是否可以注册
+			if (!this.canCreate(loginCreateInfo, errorCode)) {
+				return false;
 			}
 
-			SqlSession conn = null;
-			try { // mysql事务
-				SqlSessionFactory factory = loginHandler.getSqlSessionFactory();
-				if(factory!=null){
-					conn = factory.openSession(ExecutorType.BATCH, false);
-				}
-				
-				Object createRoleResultProtobufMessage = loginHandler.createRole(conn, msg);
+			// 创建账号
+			try {
+				RoleInterface roleInterface = loginHandler.createRole(loginCreateInfo);
+				roleInterface.setCreateTime(TimeUtils.getNowTime());
 
-				if (conn != null) {
-					conn.commit(); // 提交JDBC事务
-//					conn.setAutoCommit(true); // 恢复JDBC事务的默认提交方式
-				}
+				RoleCache.putNewRole(roleInterface);
 
-				return createRoleResultProtobufMessage;
+				return true;
 			} catch (Exception e1) {
 				e1.printStackTrace();
-				try {
-					if (conn != null)
-						conn.rollback();// 回滚JDBC事务
-				} catch (Exception e2) {
-					e2.printStackTrace();
-				}
-				e1.printStackTrace();
-				return null;
-			} finally {
-				if (conn != null) {
-					try {
-						conn.close();
-					} catch (Exception e) {
-						e.printStackTrace();
-					}
-				}
 			}
+
 		} catch (Exception e) {
 			e.printStackTrace();
-			return null;
 		} finally {
 			reentrantLock.unlock();
 		}
+		errorCode.set(LoginModelConstant.CREATE_ROLE_FAILED);
+		return false;
+
+	}
+
+	/**
+	 * 能否创建
+	 * 
+	 * @param info
+	 * @param errorCode
+	 * @return
+	 * @author wcy 2017年2月17日
+	 */
+	private boolean canCreate(LoginCreateInfo info, Ref<Integer> errorCode) {
+		RoleInterface roleInterface = RoleCache.getRoleByAccount(info.getAccount());
+		if (roleInterface != null) {
+			errorCode.set(LoginModelConstant.CREATE_ROLE_EXIST);
+			return false;
+		}
+		if (!loginHandler.createRoleCheckAccount(info, errorCode)) {
+			return false;
+		}
+		return true;
 	}
 
 	@Override
-	public Object getRoleData(Object requestMessage, IoSession ioSession) {
-		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class,
-				loginHandler.getRoleDataAccount(requestMessage));
+	public RoleInterface getRoleData(LoginInfo loginInfo, Ref<Integer> errorCode, IoSession ioSession) {
+		String account = loginInfo.getAccount();
+		int nowTime = TimeUtils.getNowTime();
+		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
 		reentrantLock.lock();
 
 		try {
-			Ref<RoleInterface> ref = new Ref<>();
-			Ref<Object> errorMessage = new Ref<>();
-			boolean hasRole = loginHandler.getRoleObject(ref, requestMessage,
-					errorMessage);
-			if (!hasRole) {
-				return errorMessage.get();
+			// 获得玩家对象
+			RoleInterface roleInterface = loginHandler.getRoleInterface(loginInfo);
+			if (roleInterface == null) {
+				errorCode.set(LoginModelConstant.GET_ROLE_DATA_NOT_EXIST);
+				return null;
 			}
 
-			IoSession oldSession = SessionCache.getSessionById(ref.get().getRoleId());
-			
-			if (oldSession != null) { // 该账号已登录
+			int roleId = roleInterface.getRoleId();
+			IoSession oldSession = SessionCache.getSessionById(roleId);
+
+			if (oldSession != null) {
+				// 该账号已登录
 				if (oldSession.isConnected()) {
-					Ref<Object> connectingErrorMessage = new Ref<>();
-					boolean connectingError = loginHandler.connectingError(connectingErrorMessage);
+					boolean connectingError = loginHandler.canSynLogin();
+					errorCode.set(LoginModelConstant.GET_ROLE_DATA_IN_LOGIN);
 					if (!connectingError) {
-						return connectingErrorMessage.get();
+						return null;
 					}
+				} else {
+					// 设置登陆时间
+					roleInterface.setLoginTime(nowTime);
 				}
 				oldSession.setAttribute("roleId", null);
 				oldSession.close(false);
+			} else {
+				// 设置登陆时间
+				roleInterface.setLoginTime(nowTime);
 			}
 
 			// session绑定ID
-			ioSession.setAttribute("roleId",ref.get().getRoleId());
+			ioSession.setAttribute("roleId", roleId);
 			// session放入缓存
-			SessionCache.addSession(ref.get().getRoleId(), ioSession);
+			SessionCache.addSession(roleId, ioSession);
 
-			return loginHandler.getRoleData(ref);
+			// 将数据库中的数据放入缓存中
+			RoleCache.putRoleCache(roleInterface);
+
+			return roleInterface;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
