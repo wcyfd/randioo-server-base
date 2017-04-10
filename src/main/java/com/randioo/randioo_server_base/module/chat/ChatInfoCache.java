@@ -9,7 +9,7 @@ import java.util.concurrent.PriorityBlockingQueue;
 
 public class ChatInfoCache {
 	private static Map<Integer, Map<Integer, Queue<ChatInfo>>> unreadMap = new HashMap<>();// 私人频道
-	private static ConcurrentHashMap<Integer, Chatable> publicMap = new ConcurrentHashMap<>();// 公共频道
+	private static ConcurrentHashMap<Integer, Integer> publicMap = new ConcurrentHashMap<>();// 公共频道
 
 	public static void initChatInfo(List<ChatInfo> chatInfoList) {
 		for (ChatInfo chatInfo : chatInfoList) {
@@ -93,7 +93,7 @@ public class ChatInfoCache {
 
 	}
 
-	public static ConcurrentHashMap<Integer, Chatable> getPublicMap() {
+	public static ConcurrentHashMap<Integer, Integer> getPublicMap() {
 		return publicMap;
 	}
 

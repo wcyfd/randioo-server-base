@@ -1,6 +1,7 @@
 package com.randioo.randioo_server_base.utils;
 
 public class StringUtils {
+	public static final String fileSplit = System.getProperty("file.separator");
 	/**
 	 * 检查字符串数据是否改变，属性与方法一一对应
 	 * 

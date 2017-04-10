@@ -10,7 +10,9 @@ import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
-public class JSInvoker {
+import org.springframework.beans.factory.InitializingBean;
+
+public class JSInvoker implements InitializingBean {
 	private ScriptEngine engine;
 	private String fileName = null;
 
@@ -21,8 +23,8 @@ public class JSInvoker {
 
 	private void init() {
 		File file = new File(fileName);
-		try(FileReader reader = new FileReader(file)) {
-			engine.eval(reader);			
+		try (FileReader reader = new FileReader(file)) {
+			engine.eval(reader);
 		} catch (ScriptException | FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e1) {
@@ -46,5 +48,10 @@ public class JSInvoker {
 			e.printStackTrace();
 		}
 		return null;
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		init();
 	}
 }

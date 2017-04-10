@@ -7,6 +7,6 @@ public interface ChatHandler {
 
 	public void noticePrivateChatInfo(ChatInfo chatInfo, int chatable);
 
-	public void noticePublicChatInfo(ChatInfo chatInfo, Chatable chatable);
+	public void noticePublicChatInfo(ChatInfo chatInfo, int receiveChatable);
 
 }

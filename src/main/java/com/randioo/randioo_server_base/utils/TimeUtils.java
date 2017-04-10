@@ -50,4 +50,20 @@ public class TimeUtils {
 		String date = dateFormat.format(new Date());
 		return date;
 	}
+
+	public static String getTimeStr(long milliseconds) {
+		Date date = new Date(milliseconds);
+		return dateFormat.format(date);
+	}
+
+	/**
+	 * 转换成长整型值
+	 * 
+	 * @param time
+	 * @return
+	 * @author wcy 2017年3月31日
+	 */
+	public static long parseInt2Long(int time) {
+		return ((long) time) * 1000;
+	}
 }

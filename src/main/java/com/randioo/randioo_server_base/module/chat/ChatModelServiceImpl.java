@@ -59,13 +59,13 @@ public class ChatModelServiceImpl extends BaseService implements ChatModelServic
 		chatInfo.setTime(nowTime);
 		chatInfo.setTxt(context);
 
-		for (Chatable chatableInPublic : ChatInfoCache.getPublicMap().values())
+		for (Integer chatableInPublic : ChatInfoCache.getPublicMap().values())
 			chatHandler.noticePublicChatInfo(chatInfo, chatableInPublic);
 	}
 
 	@Override
 	public void joinPublic(Chatable chatable) {
-		ChatInfoCache.getPublicMap().putIfAbsent(chatable.getChatKey(), chatable);
+		ChatInfoCache.getPublicMap().putIfAbsent(chatable.getChatKey(), chatable.getChatKey());
 	}
 
 	@Override
