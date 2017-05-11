@@ -1,10 +1,10 @@
 package com.randioo.randioo_server_base.module.match;
 
 import java.util.List;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.locks.Lock;
+
+import org.springframework.beans.factory.annotation.Autowired;
 
 import com.randioo.randioo_server_base.module.BaseService;
 
@@ -17,11 +17,8 @@ public class MatchModelServiceImpl extends BaseService implements MatchModelServ
 		this.matchHandler = matchHandler;
 	}
 
+	@Autowired
 	private MatchConfig matchConfig;
-
-	public void setMatchConfig(MatchConfig matchConfig) {
-		this.matchConfig = matchConfig;
-	}
 
 	@Override
 	public void init() {

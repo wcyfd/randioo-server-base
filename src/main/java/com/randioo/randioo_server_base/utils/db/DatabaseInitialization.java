@@ -5,9 +5,12 @@ import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.jolbox.bonecp.BoneCPDataSource;
+import org.springframework.beans.factory.InitializingBean;
 
-public class DatabaseInitialization {
+import com.randioo.randioo_server_base.utils.system.GlobleConfig;
+import com.randioo.randioo_server_base.utils.system.GlobleConfig.GlobleEnum;
+
+public class DatabaseInitialization implements InitializingBean {
 	private DataSource dataSource;
 	private String databaseName;
 	private List<String> sqls = new ArrayList<>();
@@ -37,6 +40,8 @@ public class DatabaseInitialization {
 	}
 
 	public void initialize() {
+		String databaseName = this.databaseName + GlobleConfig.Int(GlobleEnum.PORT);
+
 		DatabaseCreator creator = new DatabaseCreator();
 		creator.setDatabaseName(databaseName);
 		creator.setDataSource(dataSource);
@@ -46,6 +51,12 @@ public class DatabaseInitialization {
 
 		BoneCPRedirector director = new BoneCPRedirector();
 		director.setDataSource(dataSource);
-		director.redirect(((BoneCPDataSource) dataSource).getJdbcUrl().replace("?", "/" + databaseName + "?"));
+		director.setDatabaseName(databaseName);
+		director.init();
+	}
+
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		initialize();
 	}
 }

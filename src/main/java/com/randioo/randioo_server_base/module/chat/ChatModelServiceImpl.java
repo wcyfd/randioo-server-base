@@ -1,98 +1,76 @@
 package com.randioo.randioo_server_base.module.chat;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.Queue;
 
-import org.apache.mina.core.session.IoSession;
+import org.springframework.stereotype.Service;
 
-import com.randioo.randioo_server_base.cache.SessionCache;
-import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.utils.TimeUtils;
 
+@Service("chatModelService")
 public class ChatModelServiceImpl extends BaseService implements ChatModelService {
 
 	private ChatHandler chatHandler;
 
 	@Override
-	public void setChatHandler(ChatHandler chatHandler) {
-		this.chatHandler = chatHandler;
+	public void setChatHandler(ChatHandler handler) {
+		this.chatHandler = handler;
 	}
 
 	@Override
-	public void sendChat(RoleInterface role, Chatable chatable, String targetAccount, String context, int sendType) {
-		Set<String> accountSet = chatHandler.getNeedSendAccountSet(role, targetAccount, sendType);
-		if (accountSet == null) {
-			return;
+	public void sendPrivateChat(Chatable chatable, int targetChatableKey, String context) {
+		int myKey = chatable.getChatKey();
+		int otherKey = targetChatableKey;
+
+		int nowTime = TimeUtils.getNowTime();
+		// 创建聊天信息
+		ChatInfo chatInfo = chatHandler.createChatInfo(chatable, context);
+		chatInfo.setKey(chatable.getChatKey());
+		chatInfo.setTargetKey(targetChatableKey);		
+		chatInfo.setTime(nowTime);
+		chatInfo.setTxt(context);
+
+		//加入到对方消息队列中
+		Queue<ChatInfo> otherQueue = ChatInfoCache.getSession(otherKey, myKey);
+
+		this.synSendQueue2Client(otherQueue, chatInfo, otherKey);
+	}
+
+	/**
+	 * 发送到客户端
+	 * 
+	 * @param queue
+	 * @param newChatInfo
+	 * @param chatable
+	 * @author wcy 2017年2月15日
+	 */
+	private void synSendQueue2Client(Queue<ChatInfo> queue, ChatInfo newChatInfo, int chatableKey) {
+		synchronized (queue) {
+			queue.add(newChatInfo);
+			chatHandler.noticePrivateChatInfo(newChatInfo, chatableKey);
 		}
-
-		Object chatInfo = chatHandler.getChatInfo(role, context, sendType);
-		Object sendMessage = chatHandler.parseToProtocolMessage(targetAccount, chatInfo);
-
-		for (String account : accountSet) {
-			RoleInterface roleInterface = chatHandler.getRoleInterfaceByAccount(account);
-			Chatable targetChatable = chatHandler.getChatableByAccount(account);
-
-			IoSession targetSession = SessionCache.getSessionById(roleInterface.getRoleId());
-			if (targetSession == null) {
-				this.addUnreadChatInfoCount(targetChatable, account);
-			}
-			this.getHistoryChatInfoList(targetChatable, account).add(chatInfo);
-			targetSession.write(sendMessage);
-		}
-
 	}
 
 	@Override
-	public void showChatByAccount(RoleInterface roleInterface, Chatable chatable, String account) {
-		List<Object> historyList = this.getHistoryChatInfoList(chatable, account);
-		int count = this.getUnreadChatInfoList(chatable, account);
-		int historyListLen = historyList.size();
-		List<Object> objList = new ArrayList<>(historyListLen);
-		for (int i = 1; i <= count; i++) {
-			Object obj = historyList.get(historyListLen - i);
-			objList.add(obj);
-		}
+	public void sendPublicChat(Chatable chatable, String context) {
+		int nowTime = TimeUtils.getNowTime();
+		ChatInfo chatInfo = chatHandler.createChatInfo(chatable, context);
+		chatInfo.setKey(chatable.getChatKey());
+		chatInfo.setTime(nowTime);
+		chatInfo.setTxt(context);
 
-		chatable.getUnreadChatCountMap().put(account, 0);
-		chatHandler.showUnreadChatByAccount(roleInterface, account, objList);
-
+		for (Integer chatableInPublic : ChatInfoCache.getPublicMap().values())
+			chatHandler.noticePublicChatInfo(chatInfo, chatableInPublic);
 	}
 
-	/**
-	 * 历史聊天记录
-	 * 
-	 * @param chatable
-	 * @param account
-	 * @return
-	 * @author wcy 2016年12月21日
-	 */
-	private List<Object> getHistoryChatInfoList(Chatable chatable, String account) {
-		List<Object> targetHistoryChatList = chatable.getHistoryChatMap().get(account);
-		if (targetHistoryChatList == null) {
-			targetHistoryChatList = new LinkedList<>();
-			chatable.getHistoryChatMap().put(account, targetHistoryChatList);
-		}
-		return targetHistoryChatList;
+	@Override
+	public void joinPublic(Chatable chatable) {
+		ChatInfoCache.getPublicMap().putIfAbsent(chatable.getChatKey(), chatable.getChatKey());
 	}
 
-	/**
-	 * 未读聊天记录
-	 * 
-	 * @param chatable
-	 * @param account
-	 * @return
-	 * @author wcy 2016年12月21日
-	 */
-	private int getUnreadChatInfoList(Chatable chatable, String account) {
-		Integer count = chatable.getUnreadChatCountMap().get(account);
-		return count != null ? count : 0;
-	}
-
-	private void addUnreadChatInfoCount(Chatable chatable, String account) {
-		int count = this.getUnreadChatInfoList(chatable, account);
-		chatable.getUnreadChatCountMap().put(account, count + 1);
+	@Override
+	public void exitPublic(Chatable chatable) {
+		ChatInfoCache.getPublicMap().remove(chatable.getChatKey());
 	}
 
 }

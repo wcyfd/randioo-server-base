@@ -9,7 +9,6 @@ import java.util.List;
 import javax.sql.DataSource;
 
 import com.randioo.randioo_server_base.db.access.DataAccess;
-import com.randioo.randioo_server_base.db.converter.StringConverter;
 
 /**
  * 数据库生成器
@@ -18,9 +17,8 @@ import com.randioo.randioo_server_base.db.converter.StringConverter;
  *
  */
 public class DatabaseCreator extends DataAccess {
-	private final String CREATE_DATABASE_SQL = "create database {0}";
+	private final String CREATE_DATABASE_SQL = "create database if not exists {0}";
 	private final String USE_DATABASE_SQL = "use {0}";
-	private final String SHOW_DATABASES = "show databases";
 
 	private DataSource dataSource;
 	private String databaseName;
@@ -31,7 +29,7 @@ public class DatabaseCreator extends DataAccess {
 	}
 
 	public void setDatabaseName(String databaseName) {
-		this.databaseName = databaseName;
+		this.databaseName = databaseName.toLowerCase();
 	}
 
 	public List<String> getSqls() {
@@ -51,14 +49,11 @@ public class DatabaseCreator extends DataAccess {
 	}
 
 	public void initDatabase() {
-		// 查看是否已经有这个数据库
-		if (!checkContainsDataBase(databaseName)) {
-			try (Connection conn = dataSource.getConnection()) {
-				// 如果没有这个数据库则进行新建
-				createDatabase(conn);
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+		try (Connection conn = dataSource.getConnection()) {
+			// 如果没有这个数据库则进行新建
+			createDatabase(conn);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -69,27 +64,14 @@ public class DatabaseCreator extends DataAccess {
 		this.executeNotCloseConn(MessageFormat.format(USE_DATABASE_SQL, databaseName), conn);
 
 		for (String sql : sqls) {
+			sql = sql.replace("{database}", databaseName);
 			// 新建表
-			this.executeNotCloseConn(MessageFormat.format(sql, ""), conn);
+			try {
+				this.executeNotCloseConn(sql, conn);
+			} catch (Exception e) {
+				System.out.println("create database table error:" + sql + " [check char ` and' (it's different)]");
+			}
 		}
 	}
 
-	/**
-	 * 查看是否已经有这个数据库
-	 * 
-	 * @param name
-	 * @return
-	 * @author wcy 2016年12月14日
-	 */
-	public boolean checkContainsDataBase(String name) {
-		try {
-			Connection conn = dataSource.getConnection();
-			name = name.toLowerCase();
-			List<String> databaseNames = this.queryForList(SHOW_DATABASES, new StringConverter(), conn);
-			return databaseNames.contains(name);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		return false;
-	}
 }

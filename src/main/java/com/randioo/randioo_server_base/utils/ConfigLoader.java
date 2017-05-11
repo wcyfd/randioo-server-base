@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
-public class ConfigLoader {
+public class ConfigLoader  {
 	/**
 	 * 
 	 * @param packName "com.randioo.demo_optimisticframe_server.entity.file"
@@ -52,8 +52,8 @@ public class ConfigLoader {
 		}
 		System.out.println("load config complete");
 	}
-	
-	public static Map<String,Class<?>> getClassesMap(String packName){
+
+	public static Map<String, Class<?>> getClassesMap(String packName) {
 		List<Class<?>> classes = PackageUtil.getClasses(packName);
 		Map<String, Class<?>> classesMap = new HashMap<>();
 
@@ -61,10 +61,11 @@ public class ConfigLoader {
 			try {
 				classesMap.put((String) clazz.getDeclaredField("urlKey").get(null), clazz);
 			} catch (Exception e) {
-				System.out.println(clazz.getSimpleName()+" no urlkey");
+				System.out.println(clazz.getSimpleName() + " no urlkey");
 			}
 		}
 
 		return classesMap;
 	}
+
 }
