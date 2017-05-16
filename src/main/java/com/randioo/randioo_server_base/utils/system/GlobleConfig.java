@@ -26,11 +26,11 @@ public class GlobleConfig {
 		Map<String, Object> _m = _globleConfig.paramMap;
 
 		_m.put(GlobleEnum.PORT.name(), Integer.parseInt(list.get(0)));
-		
+
 		_m.put(GlobleEnum.SERVER_KEY.name(), RandomUtils.randowStr(16));
 		_m.put(GlobleEnum.LOGIN.name(), false);
-		_m.put(GlobleEnum.GM.name(), list.contains(GlobleEnum.GM.name()));
-		_m.put(GlobleEnum.DEBUG.name(), list.contains(GlobleEnum.DEBUG.name()));
+		_m.put(GlobleEnum.GM.name(), list.contains(GlobleEnum.GM.name().toLowerCase()));
+		_m.put(GlobleEnum.DEBUG.name(), list.contains(GlobleEnum.DEBUG.name().toLowerCase()));
 		try {
 			if (_globleConfig.function != null)
 				_globleConfig.function.init(_m, list);
