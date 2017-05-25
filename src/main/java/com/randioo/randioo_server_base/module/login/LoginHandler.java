@@ -25,15 +25,6 @@ public interface LoginHandler {
 	RoleInterface createRole(LoginCreateInfo loginCreateInfo);
 
 	/**
-	 * 根据帐号获得玩家对象
-	 * 
-	 * @return
-	 * @author wcy 2016年11月30日
-	 * @param requestMessage
-	 */
-	RoleInterface getRoleInterface(LoginInfo loginInfo);
-
-	/**
 	 * 用户已经在某地连接的错误,如果不处理则返回null
 	 * 
 	 * @return

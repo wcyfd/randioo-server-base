@@ -108,7 +108,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 
 		try {
 			// 获得玩家对象
-			RoleInterface roleInterface = loginHandler.getRoleInterface(loginInfo);
+			RoleInterface roleInterface = this.getRoleInterfaceByAccount(account);
 			if (roleInterface == null) {
 				errorCode.set(LoginModelConstant.GET_ROLE_DATA_NOT_EXIST);
 				return null;

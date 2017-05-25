@@ -14,8 +14,9 @@ import com.randioo.randioo_server_base.utils.TimeUtils;
 
 public class EventScheduler implements SchedulerInterface {
 
-	private int slowTime;
-	private int quickTime;
+	private int slowTime = 15;
+	private int quickTime = 1;
+	private int slowTimeDeltaTime = 2;
 
 	public void setSlowTime(int slowTime) {
 		this.slowTime = slowTime;
@@ -23,6 +24,10 @@ public class EventScheduler implements SchedulerInterface {
 
 	public void setQuickTime(int quickTime) {
 		this.quickTime = quickTime;
+	}
+
+	public void setSlowTimeDeltaTime(int slowTimeDeltaTime) {
+		this.slowTimeDeltaTime = slowTimeDeltaTime;
 	}
 
 	private ScheduledExecutorService eventService = Executors.newScheduledThreadPool(1);
@@ -62,7 +67,7 @@ public class EventScheduler implements SchedulerInterface {
 					quickSet.remove(timeEvent);
 				}
 			}
-		}, 0, quickTime, TimeUnit.SECONDS);
+		}, 1, quickTime, TimeUnit.SECONDS);
 
 		eventService.scheduleAtFixedRate(new Runnable() {
 
@@ -70,8 +75,7 @@ public class EventScheduler implements SchedulerInterface {
 			public void run() {
 				Set<TimeEvent> deleteSet = new HashSet<>();
 				for (TimeEvent timeEvent : slowSet.values()) {
-					int nowTime = TimeUtils.getNowTime();
-					if (nowTime >= timeEvent.getEndTime()) {
+					if (timeEvent.getEndTime() - TimeUtils.getNowTime() <= (slowTime + slowTimeDeltaTime)) {
 						quickSet.put(timeEvent, timeEvent);
 						deleteSet.add(timeEvent);
 					}
