@@ -4,9 +4,9 @@ import org.springframework.stereotype.Service;
 
 import com.randioo.randioo_server_base.cache.RoleCache;
 import com.randioo.randioo_server_base.entity.RoleInterface;
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.service.BaseService;
+import com.randioo.randioo_server_base.template.Ref;
 import com.randioo.randioo_server_base.utils.GameUtils;
-import com.randioo.randioo_server_base.utils.template.Ref;
 
 @Service("roleModelService")
 public class RoleModelServiceImpl extends BaseService implements RoleModelService {

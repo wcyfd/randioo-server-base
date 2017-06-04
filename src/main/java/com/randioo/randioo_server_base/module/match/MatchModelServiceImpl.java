@@ -1,278 +1,251 @@
 package com.randioo.randioo_server_base.module.match;
 
-import java.util.List;
-import java.util.concurrent.ScheduledFuture;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.lock.CacheLockUtil;
+import com.randioo.randioo_server_base.module.match.MatchRule.MatchState;
+import com.randioo.randioo_server_base.scheduler.EventScheduler;
+import com.randioo.randioo_server_base.service.BaseService;
+import com.randioo.randioo_server_base.template.EntityRunnable;
+import com.randioo.randioo_server_base.utils.TimeUtils;
 
 public class MatchModelServiceImpl extends BaseService implements MatchModelService {
 
+	private ExecutorService executor = null;
+	private ExecutorService matchSuccessExecutor = null;
+
+	@Autowired
+	private EventScheduler eventScheduler;
+
 	private MatchHandler matchHandler;
+
+	@Override
+	public void initService() {
+		executor = Executors.newSingleThreadScheduledExecutor();
+		matchSuccessExecutor = Executors.newCachedThreadPool();
+	}
 
 	@Override
 	public void setMatchHandler(MatchHandler matchHandler) {
 		this.matchHandler = matchHandler;
 	}
 
-	@Autowired
-	private MatchConfig matchConfig;
-
-	@Override
-	public void init() {
-		MatchCache.setScheduleExecutorServiceThreadSize(matchConfig.getThreadSize());
-	}
-
 	@Override
 	public void matchRole(MatchRule matchRule) {
-		final Lock lock = MatchCache.getLock();
-		lock.lock();
-		boolean matchFailed = true;
-		try {
-			if (matchRule.getMatchTarget().getMatchInfo() != null) {
-				return;
-			}
-			if (!matchRule.isMatchNPC()) {
-				for (Integer matchId : MatchCache.getMatchIdSet()) {
-					MatchInfo matchInfo = MatchCache.getMatchInfoMap().get(matchId);
-					if (matchInfo == null || matchInfo.isMatchComplete() || matchInfo.isMatchCancel()) {
-						continue;
+		matchRule.setState(MatchState.MATCH_READY);
+		// 添加匹配信息
+		MatchRuleCache.getMatchRuleMap().put(matchRule.getId(), matchRule);
+		// 设置超时定时器
+		executor.submit(new EntityRunnable<MatchRule>(matchRule) {
+
+			@Override
+			public void run(MatchRule entity) {
+				try {
+					// 由于异步加入，所以加入之前先检查一次是否可以删除
+					Lock lock = getLock(entity.getId());
+					try {
+						lock.lock();
+						if (checkDelete(entity)) {
+							return;
+						}
+					} finally {
+						lock.unlock();
 					}
-					// 匹配规则
-					boolean matchRuleSuccess = matchHandler.matchRule(matchRule, matchInfo);
-					// 如果匹配规则成功,匹配人数未满,则可以加入
-					if (matchRuleSuccess
-							&& matchInfo.getMatchables().size() < matchInfo.getMatchRule().getPlayerCount()) {
-						matchFailed = false;
+					MatchRuleCache.getMatchTempMap().put(entity.getId(), entity);
 
-						matchHandler.matchSuccess(matchInfo, matchRule);
-						matchInfo.getMatchables().add(matchRule.getMatchTarget());
-						matchRule.getMatchTarget().setMatchInfo(matchInfo);
+					Set<String> matchRuleIdSet = new HashSet<>(MatchRuleCache.getMatchRuleMap().keySet());
 
-						if (this.checkMatchComplete(matchInfo)) {
+					boolean matchSuccess = false;
+					for (String id : matchRuleIdSet) {
+						MatchRule matchRule = MatchRuleCache.getMatchRuleMap().get(id);
+						// 不能匹配自己
+						if (matchRule.getId().equals(entity.getId())) {
+							continue;
+						}
+
+						// 先检查规则，通过了在考虑同步问题
+						if (!matchHandler.checkMatchRule(entity, matchRule))
+							continue;
+
+						// 检查是否要删除,检查第二次,主要还是为了提高锁同步的必要性,由于检查匹配规则的耗时可能非常的长,但是玩家可以随取消匹配的
+						// 只检查自己是否取消匹配，如果取消匹配了，则下面的人不可能匹配上，直接下一个人
+						if (checkDelete(entity))
 							break;
+
+						// 规则匹配没有问题则加入到缓存
+						MatchRuleCache.getMatchTempMap().put(matchRule.getId(), matchRule);
+
+						// 匹配到的人的集合与当前人的规则进行比较
+						if (!matchHandler.checkArriveMaxCount(entity, MatchRuleCache.getMatchTempMap()))
+							continue;
+
+						initLocks();
+						try {
+							lockSet_Lock();
+
+							for (MatchRule rule : MatchRuleCache.getMatchTempMap().values()) {
+								if (checkDelete(rule))
+									MatchRuleCache.getNeedDeleteIdTempSet().add(rule.getId());
+							}
+
+							// 如果有要删除的则再找下一个人
+							if (MatchRuleCache.getNeedDeleteIdTempSet().size() > 0) {
+								for (String deleteId : MatchRuleCache.getNeedDeleteIdTempSet())
+									MatchRuleCache.getMatchTempMap().remove(deleteId);
+								continue;
+							}
+
+							// 匹配成功
+							for (MatchRule rule : MatchRuleCache.getMatchTempMap().values())
+								rule.setState(MatchState.MATCH_SUCCESS);
+
+							matchSuccess = true;
+							break;
+
+						} catch (Exception e) {
+							e.printStackTrace();
+						} finally {
+							lockSet_Unlock();
+							MatchRuleCache.getLocksTempMap().clear();
+							MatchRuleCache.getNeedDeleteIdTempSet().clear();
 						}
-					} else {
-						continue;
+					}
+					if (matchSuccess) {
+						MatchRuleCache.getDeleteMatchRuleIdSet().addAll(MatchRuleCache.getMatchTempMap().keySet());
+						Map<String, MatchRule> copyTempMap = new HashMap<>(MatchRuleCache.getMatchTempMap());
+						try {
+							matchSuccessExecutor.submit(new EntityRunnable<Map<String, MatchRule>>(copyTempMap) {
+
+								@Override
+								public void run(Map<String, MatchRule> entity) {
+									matchHandler.matchSuccess(entity);
+								}
+
+							});
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
 					}
 
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					// 删除作废的匹配
+					for (String ruleId : MatchRuleCache.getDeleteMatchRuleIdSet())
+						MatchRuleCache.getMatchRuleMap().remove(ruleId);
+
+					MatchRuleCache.getMatchTempMap().clear();
+					MatchRuleCache.getDeleteMatchRuleIdSet().clear();
 				}
 			}
+		});
 
-			// 如果匹配不成功
-			if (matchFailed) {
-				MatchInfo matchInfo = matchHandler.createMatchInfo(matchRule);
-				int id = MatchCache.getId();
-				id++;
-				MatchCache.setId(id);
+		// 如果没有设置等待时间则不进行倒计时
+		if (matchRule.getWaitTime() == 0)
+			return;
 
-				matchInfo.setMatchId(id);
-				matchInfo.setMatchRule(matchRule);
-				matchInfo.getMatchables().add(matchRule.getMatchTarget());
-				matchRule.getMatchTarget().setMatchInfo(matchInfo);
+		MatchTimeEvent timeEvent = new MatchTimeEvent(matchRule) {
 
-				if (!matchRule.isMatchNPC()) {
-					// 如果需要等待，则进行等待函数
-					if (matchHandler.needWaitMatch(matchInfo)) {
-						// 检查匹配是否完毕
-						if (!this.checkMatchComplete(matchInfo)) {
-							// 匹配没有完成，则加入队列
-							// 先加入数据集
-							// 再启动定时器
-							MatchCache.getMatchIdSet().add(matchInfo.getMatchId());
-							MatchCache.getMatchInfoMap().put(matchInfo.getMatchId(), matchInfo);
-							// matchInfo.setScheduleFuture(this.scheduleExecutorService.schedule(new
-							// WaitMatchRunnable(
-							// matchInfo), matchRule.getWaitTime(),
-							// matchRule.getWaitUnit()));
-							matchInfo.setScheduleFuture(MatchCache.getScheduleExecutorService().scheduleAtFixedRate(
-									new WaitMatchRunnable(matchInfo), 0, 1, matchRule.getWaitUnit()));
-						}
-					}
-				} else {
-					matchNPC(matchInfo);
+			@Override
+			public void outOfTime(MatchRule matchRule) {
+				if (checkDelete(matchRule))
+					return;
+
+				Lock lock = getLock(matchRule.getId());
+				try {
+					lock.lock();
+					if (checkDelete(matchRule))
+						return;
+
+					matchHandler.outOfTime(matchRule);
+				} catch (Exception e) {
+					e.printStackTrace();
+				} finally {
+					lock.unlock();
 				}
-
 			}
+		};
 
-			// 删除需要删除的玩家
-			for (MatchInfo matchInfo : MatchCache.getNeedDeleteMatchInfoList()) {
-				MatchCache.getMatchIdSet().remove(matchInfo.getMatchId());
-				MatchCache.getMatchInfoMap().remove(matchInfo.getMatchId());
-			}
-			MatchCache.getNeedDeleteMatchInfoList().clear();
-
-		} finally {
-			lock.unlock();
-		}
-
+		int endTime = TimeUtils.getNowTime() + matchRule.getWaitTime();
+		timeEvent.setEndTime(endTime);
+		// 发送定时器
+		eventScheduler.addEvent(timeEvent);
 	}
 
 	/**
-	 * 匹配NPC
+	 * 检查是否删除
 	 * 
-	 * @param matchInfo
-	 */
-	private void matchNPC(MatchInfo matchInfo) {
-		for (int i = matchInfo.getMatchables().size(), playerCount = matchInfo.getMatchRule().getPlayerCount(); i < playerCount; i++) {
-			MatchRule matchRule = matchHandler.getAutoMatchRole(matchInfo);
-
-			matchHandler.matchSuccess(matchInfo, matchRule);
-			matchInfo.getMatchables().add(matchRule.getMatchTarget());
-			matchRule.getMatchTarget().setMatchInfo(matchInfo);
-
-			if (this.checkMatchComplete(matchInfo))
-				break;
-		}
-
-	}
-
-	/**
-	 * 检查匹配完毕
-	 * 
-	 * @param matchInfo
+	 * @param matchRule
 	 * @return
 	 */
-	private boolean checkMatchComplete(MatchInfo matchInfo) {
-		// 匹配完毕，则停止计时器
-		if (matchInfo.getMatchables().size() >= matchInfo.getMatchRule().getPlayerCount()) {
-			cancelMatchInfoScheduled(matchInfo);
-
-			addNeedDeleteMatchInfo(matchInfo);
-
-			matchInfo.setMatchComplete(true);
-			matchHandler.matchComplete(matchInfo);
-			List<Matchable> matchables = matchInfo.getMatchables();
-			// 重置匹配信息
-			for (Matchable matchable : matchables) {
-				matchable.setMatchInfo(null);
-			}
+	private boolean checkDelete(MatchRule matchRule) {
+		if (matchRule == null)
 			return true;
-		}
-		return false;
 
+		MatchState state = matchRule.getState();
+		if (state != MatchState.MATCH_CANCEL && state != MatchState.MATCH_SUCCESS)
+			return false;
+
+		MatchRuleCache.getDeleteMatchRuleIdSet().add(matchRule.getId());
+
+		return true;
 	}
 
 	@Override
-	public void cancelMatch(Matchable matchable) {
-		// 锁定操作，直到该操作完成
-		final Lock lock = MatchCache.getLock();
-		System.out.println(this.getClass().getSimpleName() + " cancelMatch");
-		MatchInfo matchInfo = matchable.getMatchInfo();
-		// 如果已经取消匹配或者已经匹配完成，则直接返回
-		if (matchable.getMatchInfo() == null || matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
+	public void cancelMatch(String ruleId) {
+		MatchRule matchRule = MatchRuleCache.getMatchRuleMap().get(ruleId);
+
+		if (checkDelete(matchRule))
 			return;
-		}
+		Lock lock = getLock(ruleId);
 		try {
 			lock.lock();
-			if (matchInfo.isMatchCancel() || matchInfo.isMatchComplete()) {
+
+			if (checkDelete(matchRule))
 				return;
-			}
 
-			MatchRule matchRule = matchInfo.getMatchRule();
-			List<Matchable> matchables = matchInfo.getMatchables();
-			matchables.remove(matchable);
-			matchable.setMatchInfo(null);
-			matchHandler.cancelMatch(matchable);
-			// 如果删除的人是发起者，并且还有匹配的人，则更换匹配发起者
-
-			boolean isAllNPC = true;
-			Matchable nextMatchTarget = null;
-			if (matchRule.getMatchTarget() == matchable) {
-				for (Matchable m : matchables) {
-					if (!m.isNPC()) {
-						isAllNPC = false;
-						nextMatchTarget = m;
-						break;
-					}
-				}
-			}
-
-			// 如果全部都是npc则取消该匹配
-			if (isAllNPC) {
-				matchInfo.setMatchCancel(true);
-				cancelMatchInfoScheduled(matchInfo);
-				matchHandler.destroyMatchInfo(matchInfo);
-				addNeedDeleteMatchInfo(matchInfo);
-			} else {
-				// 替换匹配发起人
-				matchRule.setMatchTarget(nextMatchTarget);
-				matchHandler.changeStartMatcher(matchable, nextMatchTarget);
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
+			matchRule.setState(MatchState.MATCH_CANCEL);
 		} finally {
+			lock.unlock();
+		}
+
+	}
+
+	/**
+	 * 获得锁
+	 * 
+	 * @param id
+	 * @return
+	 * @author wcy 2017年5月26日
+	 */
+	private Lock getLock(String id) {
+		return CacheLockUtil.getLock(MatchRule.class, id);
+	}
+
+	private void initLocks() {
+		Map<String, MatchRule> map = MatchRuleCache.getMatchTempMap();
+		for (MatchRule matchRule : map.values())
+			MatchRuleCache.getLocksTempMap().add(getLock(matchRule.getId()));
+	}
+
+	private void lockSet_Lock() {
+		for (Lock lock : MatchRuleCache.getLocksTempMap())
+			lock.lock();
+
+	}
+
+	private void lockSet_Unlock() {
+		for (Lock lock : MatchRuleCache.getLocksTempMap()) {
 			lock.unlock();
 		}
 	}
 
-	/**
-	 * 取消匹配信息的定时器
-	 * 
-	 * @param matchInfo
-	 */
-	private void cancelMatchInfoScheduled(MatchInfo matchInfo) {
-		ScheduledFuture<?> scheduleFuture = matchInfo.getScheduleFuture();
-		if (scheduleFuture != null) {
-			scheduleFuture.cancel(true);
-		}
-	}
-
-	/**
-	 * 添加需要删除的匹配信息
-	 * 
-	 * @param matchInfo
-	 */
-	private void addNeedDeleteMatchInfo(MatchInfo matchInfo) {
-
-		List<MatchInfo> matchInfoList = MatchCache.getNeedDeleteMatchInfoList();
-		if (!matchInfoList.contains(matchInfo)) {
-			System.out.println("add need delete match info" + matchInfoList.size());
-			matchInfoList.add(matchInfo);
-		}
-	}
-
-	private class WaitMatchRunnable implements Runnable {
-
-		private MatchInfo matchInfo;
-
-		public WaitMatchRunnable(MatchInfo matchInfo) {
-			this.matchInfo = matchInfo;
-		}
-
-		private int clickCount = 0;
-
-		@Override
-		public void run() {
-			if (matchInfo.isMatchComplete() || matchInfo.isMatchCancel())
-				return;
-			final Lock lock = MatchCache.getLock();
-			try {
-				lock.lock();
-
-				if (matchInfo.isMatchComplete() || matchInfo.isMatchCancel())
-					return;
-
-				matchHandler.waitClick(matchInfo, clickCount);
-
-				// 匹配超时
-				if (clickCount >= matchInfo.getMatchRule().getWaitTime()) {
-					cancelMatchInfoScheduled(matchInfo);
-
-					matchNPC(matchInfo);
-				}
-				clickCount++;
-			} catch (Exception e) {
-				e.printStackTrace();
-
-			} finally {
-				lock.unlock();
-			}
-
-		}
-
-	}
 }

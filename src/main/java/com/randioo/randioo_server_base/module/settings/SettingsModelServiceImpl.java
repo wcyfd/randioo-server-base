@@ -2,7 +2,7 @@ package com.randioo.randioo_server_base.module.settings;
 
 import org.springframework.stereotype.Service;
 
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.service.BaseService;
 
 @Service("SettingsModelService")
 public class SettingsModelServiceImpl extends BaseService implements SettingsModelService {

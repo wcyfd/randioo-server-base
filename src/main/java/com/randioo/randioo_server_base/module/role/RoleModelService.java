@@ -1,8 +1,8 @@
 package com.randioo.randioo_server_base.module.role;
 
 import com.randioo.randioo_server_base.entity.RoleInterface;
-import com.randioo.randioo_server_base.module.BaseServiceInterface;
-import com.randioo.randioo_server_base.utils.template.Ref;
+import com.randioo.randioo_server_base.service.BaseServiceInterface;
+import com.randioo.randioo_server_base.template.Ref;
 
 public interface RoleModelService extends BaseServiceInterface {
 	public void setRoleHandler(RoleHandler roleHandler);

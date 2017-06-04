@@ -1,6 +1,10 @@
 package com.randioo.randioo_server_base.utils;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class StringUtils {
+	private static Logger logger = LoggerFactory.getLogger(StringUtils.class.getSimpleName());
 	public static final String fileSplit = System.getProperty("file.separator");
 	public static final String lineSplit = System.getProperty("line.separator");
 
@@ -34,7 +38,7 @@ public class StringUtils {
 	 * @author wcy 2016年12月16日
 	 */
 	public static String firstStrToUpperCase(String str) {
-		if (str == null || str.equals(""))
+		if (isNullOrEmpty(str))
 			return str;
 		String firstStr = str.substring(0, 1);
 		return str.replaceFirst(firstStr, firstStr.toUpperCase());
@@ -48,7 +52,7 @@ public class StringUtils {
 	 * @author wcy 2017年2月11日
 	 */
 	public static String firstStrToLowerCase(String str) {
-		if (str == null || str.equals(""))
+		if (isNullOrEmpty(str))
 			return str;
 
 		String firstStr = str.substring(0, 1);
@@ -62,10 +66,13 @@ public class StringUtils {
 	 * @author wcy 2017年2月9日
 	 */
 	public static void printArgs(String[] args) {
-		System.out.println("args count:" + args.length);
-		for (int i = 0; i < args.length; i++) {
-			System.out.print("[" + i + "]=" + args[i] + ((i + 1) == args.length ? System.lineSeparator() : ","));
-		}
+		logger.info("args count:" + args.length);
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < args.length; i++)
+			sb.append("[").append(i).append("]=").append(args[i])
+					.append(((i + 1) == args.length ? "" : ","));
+
+		logger.info(sb.toString());
 	}
 
 	/**

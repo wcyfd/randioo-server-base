@@ -6,7 +6,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.springframework.stereotype.Component;
 
-import com.randioo.randioo_server_base.utils.template.Function;
+import com.randioo.randioo_server_base.template.Function;
 
 @Component("gameDB")
 public class GameDB {

@@ -1,9 +1,11 @@
 package com.randioo.randioo_server_base;
 
-import com.randioo.randioo_server_base.utils.system.Platform;
-import com.randioo.randioo_server_base.utils.system.Platform.OS;
-import com.randioo.randioo_server_base.utils.system.SignalTrigger;
-import com.randioo.randioo_server_base.utils.template.Function;
+import com.randioo.randioo_server_base.platform.Platform;
+import com.randioo.randioo_server_base.platform.SignalTrigger;
+import com.randioo.randioo_server_base.platform.Platform.OS;
+import com.randioo.randioo_server_base.template.Function;
+import com.randioo.randioo_server_base.utils.GameUtils;
+import com.randioo.randioo_server_base.utils.GameUtils.ValueGet;
 
 /**
  * Hello world!
@@ -76,5 +78,6 @@ public class App {
 //				e.printStackTrace();
 //			}
 //		}
+		
 	}
 }

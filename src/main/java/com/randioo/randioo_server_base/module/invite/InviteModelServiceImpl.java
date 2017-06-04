@@ -2,7 +2,7 @@ package com.randioo.randioo_server_base.module.invite;
 
 import java.util.concurrent.locks.Lock;
 
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.service.BaseService;
 
 public class InviteModelServiceImpl extends BaseService implements InviteModelService {
 	private InviteHandler handler;

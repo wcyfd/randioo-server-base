@@ -3,7 +3,7 @@ package com.randioo.randioo_server_base.entity;
 import java.util.List;
 import java.util.Map;
 
-import com.randioo.randioo_server_base.utils.template.Function;
+import com.randioo.randioo_server_base.template.Function;
 
 public abstract class GlobalConfigFunction implements Function {
 

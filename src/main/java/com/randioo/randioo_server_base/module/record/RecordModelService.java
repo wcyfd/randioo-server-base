@@ -2,7 +2,7 @@ package com.randioo.randioo_server_base.module.record;
 
 import java.lang.reflect.Method;
 
-import com.randioo.randioo_server_base.module.BaseServiceInterface;
+import com.randioo.randioo_server_base.service.BaseServiceInterface;
 
 public interface RecordModelService extends BaseServiceInterface {
 	public void addRecord(Recordable recordable, AbstractRecordInfo recordInfo);

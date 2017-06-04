@@ -9,10 +9,10 @@ import java.util.concurrent.locks.Lock;
 
 import org.springframework.stereotype.Service;
 
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.lock.CacheLockUtil;
 import com.randioo.randioo_server_base.module.friend.FriendModelConstant.NewRelation;
-import com.randioo.randioo_server_base.net.CacheLockUtil;
-import com.randioo.randioo_server_base.utils.template.Ref;
+import com.randioo.randioo_server_base.service.BaseService;
+import com.randioo.randioo_server_base.template.Ref;
 
 @Service("friendModelService")
 public class FriendModelServiceImpl extends BaseService implements FriendModelService {

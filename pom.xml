@@ -1,9 +1,10 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.randioo</groupId>
 	<artifactId>randioo-server-base</artifactId>
-	<version>0.0.4</version>
+	<version>0.0.5</version>
 	<packaging>jar</packaging>
 
 	<name>randioo-server-base</name>
@@ -20,7 +21,6 @@
 				<artifactId>maven-bundle-plugin</artifactId>
 				<extensions>true</extensions>
 			</plugin>
-
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -43,13 +43,16 @@
 						</goals>
 						<configuration>
 							<transformers>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
 									<mainClass>com.randioo.randioo_server_base.App</mainClass>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/spring.handlers</resource>
 								</transformer>
-								<transformer implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
+								<transformer
+									implementation="org.apache.maven.plugins.shade.resource.AppendingTransformer">
 									<resource>META-INF/spring.schemas</resource>
 								</transformer>
 							</transformers>
@@ -82,7 +85,6 @@
 			<version>2.2.1</version>
 		</dependency>
 
-
 		<!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
 		<dependency>
 			<groupId>com.google.guava</groupId>
@@ -97,21 +99,13 @@
 			<version>5.1.18</version>
 		</dependency>
 
-		<!-- log4j -->
+		<!-- slf4j -->
 		<!-- https://mvnrepository.com/artifact/org.slf4j/jcl-over-slf4j -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>jcl-over-slf4j</artifactId>
 			<version>1.6.4</version>
 		</dependency>
-
-		<!-- https://mvnrepository.com/artifact/log4j/log4j -->
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.16</version>
-		</dependency>
-
 		<!-- https://mvnrepository.com/artifact/org.slf4j/slf4j-api -->
 		<dependency>
 			<groupId>org.slf4j</groupId>
@@ -124,6 +118,14 @@
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-log4j12</artifactId>
 			<version>1.6.4</version>
+		</dependency>
+
+		<!-- log4j -->
+		<!-- https://mvnrepository.com/artifact/log4j/log4j -->
+		<dependency>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.16</version>
 		</dependency>
 
 		<!-- mina -->
@@ -147,7 +149,14 @@
 			<artifactId>protobuf-java</artifactId>
 			<version>2.3.0</version>
 		</dependency>
-
+		
+		<!-- https://mvnrepository.com/artifact/org.json/json -->
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20090211</version>
+		</dependency>
+		
 		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
 		<dependency>
 			<groupId>org.mybatis</groupId>

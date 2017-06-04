@@ -1,52 +1,36 @@
 package com.randioo.randioo_server_base.module.match;
 
-import java.util.concurrent.TimeUnit;
-
 public class MatchRule {
-	private Matchable matchTarget;
-	private int playerCount;
-	private boolean matchNPC;
-	private long waitTime;
-	private TimeUnit waitUnit = TimeUnit.SECONDS;
-
-	public Matchable getMatchTarget() {
-		return matchTarget;
+	enum MatchState {
+		MATCH_READY, MATCH_CANCEL, MATCH_SUCCESS
 	}
 
-	public void setMatchTarget(Matchable matchTarget) {
-		this.matchTarget = matchTarget;
-	}
+	private int waitTime;
+	private String id;
+	private MatchState state;
 
-	public int getPlayerCount() {
-		return playerCount;
-	}
-
-	public void setPlayerCount(int playerCount) {
-		this.playerCount = playerCount;
-	}
-
-	public boolean isMatchNPC() {
-		return matchNPC;
-	}
-
-	public void setMatchNPC(boolean matchNPC) {
-		this.matchNPC = matchNPC;
-	}
-
-	public long getWaitTime() {
+	public int getWaitTime() {
 		return waitTime;
 	}
 
-	public void setWaitTime(long waitTime) {
+	public void setWaitTime(int waitTime) {
 		this.waitTime = waitTime;
 	}
 
-	public TimeUnit getWaitUnit() {
-		return waitUnit;
+	public String getId() {
+		return id;
 	}
 
-	public void setWaitUnit(TimeUnit waitUnit) {
-		this.waitUnit = waitUnit;
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public MatchState getState() {
+		return state;
+	}
+
+	protected void setState(MatchState state) {
+		this.state = state;
 	}
 
 }

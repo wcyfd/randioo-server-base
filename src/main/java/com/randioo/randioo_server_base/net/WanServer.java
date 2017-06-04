@@ -9,10 +9,15 @@ import org.apache.mina.core.filterchain.IoFilter;
 import org.apache.mina.core.session.IdleStatus;
 import org.apache.mina.filter.executor.ExecutorFilter;
 import org.apache.mina.transport.socket.nio.NioSocketAcceptor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.randioo.randioo_server_base.net.protocal.http.ServerHttpMessageCodec;
+import com.randioo.randioo_server_base.config.ServerConfig;
+import com.randioo.randioo_server_base.protocol.http.ServerHttpMessageCodec;
 
 public class WanServer {
+	private static Logger logger = LoggerFactory.getLogger(WanServer.class.getSimpleName());
+
 	public static void startHttpServer(IoHandlerAdapter handler, InetSocketAddress inetSocketAddress) {
 		startServer(new ServerHttpMessageCodec(), handler, inetSocketAddress);
 	}
@@ -36,15 +41,9 @@ public class WanServer {
 		ioAcceptor.setHandler(handler);
 		try {
 			ioAcceptor.bind(inetSocketAddress);
-			System.out.println("WANSERVER : START SERVER SUCCESS");
+			logger.info("WANSERVER : START SERVER SUCCESS");
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			public void run() {
-				// WanServer.this.dispose();
-			}
-		});
 	}
 }

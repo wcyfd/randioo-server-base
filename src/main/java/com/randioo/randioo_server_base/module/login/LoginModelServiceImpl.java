@@ -9,10 +9,10 @@ import org.springframework.stereotype.Service;
 import com.randioo.randioo_server_base.cache.RoleCache;
 import com.randioo.randioo_server_base.cache.SessionCache;
 import com.randioo.randioo_server_base.entity.RoleInterface;
-import com.randioo.randioo_server_base.module.BaseService;
-import com.randioo.randioo_server_base.net.CacheLockUtil;
+import com.randioo.randioo_server_base.lock.CacheLockUtil;
+import com.randioo.randioo_server_base.service.BaseService;
+import com.randioo.randioo_server_base.template.Ref;
 import com.randioo.randioo_server_base.utils.TimeUtils;
-import com.randioo.randioo_server_base.utils.template.Ref;
 
 @Service("loginModelService")
 public class LoginModelServiceImpl extends BaseService implements LoginModelService {

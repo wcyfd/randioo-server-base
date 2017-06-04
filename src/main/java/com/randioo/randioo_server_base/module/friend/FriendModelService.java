@@ -3,9 +3,9 @@ package com.randioo.randioo_server_base.module.friend;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 
-import com.randioo.randioo_server_base.module.BaseServiceInterface;
 import com.randioo.randioo_server_base.module.friend.FriendModelConstant.NewRelation;
-import com.randioo.randioo_server_base.utils.template.Ref;
+import com.randioo.randioo_server_base.service.BaseServiceInterface;
+import com.randioo.randioo_server_base.template.Ref;
 
 public interface FriendModelService extends BaseServiceInterface{
 	public void setFriendHandler(FriendHandler friendHandler);

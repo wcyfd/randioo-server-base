@@ -1,7 +1,7 @@
 package com.randioo.randioo_server_base.utils;
 
+import com.randioo.randioo_server_base.db.Saveable;
 import com.randioo.randioo_server_base.entity.RoleInterface;
-import com.randioo.randioo_server_base.utils.db.Saveable;
 
 public class SaveUtils {
 	public static boolean needSave(Saveable saveable, boolean mustSave) {

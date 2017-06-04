@@ -1,6 +1,6 @@
 package com.randioo.randioo_server_base.module.chat;
 
-import com.randioo.randioo_server_base.module.BaseServiceInterface;
+import com.randioo.randioo_server_base.service.BaseServiceInterface;
 
 public interface ChatModelService extends BaseServiceInterface {
 

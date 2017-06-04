@@ -1,7 +1,7 @@
 package com.randioo.randioo_server_base.module.login;
 
 import com.randioo.randioo_server_base.entity.RoleInterface;
-import com.randioo.randioo_server_base.utils.template.Ref;
+import com.randioo.randioo_server_base.template.Ref;
 
 public interface LoginHandler {
 

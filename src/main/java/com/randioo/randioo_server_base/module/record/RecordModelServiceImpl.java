@@ -3,7 +3,7 @@ package com.randioo.randioo_server_base.module.record;
 import java.lang.reflect.Method;
 import java.util.Map;
 
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.service.BaseService;
 
 public class RecordModelServiceImpl extends BaseService implements RecordModelService {
 

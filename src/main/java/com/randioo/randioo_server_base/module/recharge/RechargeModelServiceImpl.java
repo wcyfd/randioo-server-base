@@ -2,7 +2,7 @@ package com.randioo.randioo_server_base.module.recharge;
 
 import org.springframework.stereotype.Service;
 
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.service.BaseService;
 
 @Service("rechargeModelService")
 public class RechargeModelServiceImpl extends BaseService implements RechargeModelService {

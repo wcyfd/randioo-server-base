@@ -7,8 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import com.randioo.randioo_server_base.utils.RandomUtils;
-import com.randioo.randioo_server_base.utils.template.Function;
+import com.randioo.randioo_server_base.template.Function;
 
 public class GameUtils {
 
@@ -187,7 +186,6 @@ public class GameUtils {
 	}
 
 	public static int protectedGetTotalValue(int originValue, int addValue) {
-		// TODO Auto-generated method stub
 		int total = originValue + addValue;
 		if (total < 0) {
 			if (addValue >= 0) {
@@ -199,4 +197,11 @@ public class GameUtils {
 		return total;
 	}
 
+	public interface ValueGet<T, V> {
+		public V getValue(T param);
+	}
+
+	public interface WeightGet<T> {
+		public int getWeightValue(T param);
+	}
 }

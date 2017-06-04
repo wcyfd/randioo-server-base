@@ -4,7 +4,7 @@ import java.util.Queue;
 
 import org.springframework.stereotype.Service;
 
-import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.service.BaseService;
 import com.randioo.randioo_server_base.utils.TimeUtils;
 
 @Service("chatModelService")
