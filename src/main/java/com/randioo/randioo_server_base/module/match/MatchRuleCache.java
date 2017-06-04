@@ -8,34 +8,34 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 
 public class MatchRuleCache {
-	private static Map<String, MatchRule> matchRuleMap = new ConcurrentHashMap<>();
+	private Map<String, MatchRule> matchRuleMap = new ConcurrentHashMap<>();
 
-	public static Map<String, MatchRule> getMatchRuleMap() {
+	public Map<String, MatchRule> getMatchRuleMap() {
 		return matchRuleMap;
 	}
 
-	public static Set<String> cancelMatchRuleIdSet = new HashSet<>();
+	public Set<String> cancelMatchRuleIdSet = new HashSet<>();
 
-	public static Set<String> getDeleteMatchRuleIdSet() {
-		System.out.println("DeleteMatchRuleIdSet"+cancelMatchRuleIdSet);
+	public Set<String> getDeleteMatchRuleIdSet() {
+		System.out.println("DeleteMatchRuleIdSet" + cancelMatchRuleIdSet);
 		return cancelMatchRuleIdSet;
 	}
 
-	public static Map<String, MatchRule> matchTempMap = new HashMap<>();
+	public Map<String, MatchRule> matchTempMap = new HashMap<>();
 
-	public static Map<String, MatchRule> getMatchTempMap() {
+	public Map<String, MatchRule> getMatchTempMap() {
 		return matchTempMap;
 	}
 
-	public static Set<Lock> locksTempMap = new HashSet<>();
+	public Set<Lock> locksTempMap = new HashSet<>();
 
-	public static Set<Lock> getLocksTempMap() {
+	public Set<Lock> getLocksTempMap() {
 		return locksTempMap;
 	}
 
-	public static Set<String> needDeleteIdTempSet = new HashSet<>();
+	public Set<String> needDeleteIdTempSet = new HashSet<>();
 
-	public static Set<String> getNeedDeleteIdTempSet() {
+	public Set<String> getNeedDeleteIdTempSet() {
 		return needDeleteIdTempSet;
 	}
 }
