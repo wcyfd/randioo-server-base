@@ -43,6 +43,7 @@ public class EventScheduler implements SchedulerInterface {
 			public void run() {
 				Set<TimeEvent> deleteSet = new HashSet<>();
 				for (TimeEvent timeEvent : quickSet.values()) {
+					System.out.println("quick");
 					int nowTime = TimeUtils.getNowTime();
 					int endTime = timeEvent.getEndTime();
 					if (nowTime >= endTime) {
@@ -75,6 +76,7 @@ public class EventScheduler implements SchedulerInterface {
 			public void run() {
 				Set<TimeEvent> deleteSet = new HashSet<>();
 				for (TimeEvent timeEvent : slowSet.values()) {
+					System.out.println("slow");
 					if (timeEvent.getEndTime() - TimeUtils.getNowTime() <= (slowTime + slowTimeDeltaTime)) {
 						quickSet.put(timeEvent, timeEvent);
 						deleteSet.add(timeEvent);
