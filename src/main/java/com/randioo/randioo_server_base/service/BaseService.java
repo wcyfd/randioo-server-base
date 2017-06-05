@@ -17,7 +17,10 @@ import com.randioo.randioo_server_base.utils.StringUtils;
 
 public class BaseService implements BaseServiceInterface {
 
-	protected Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+	/**
+	 * 获得这个类的第一个接口
+	 */
+	protected Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0].getSimpleName());
 
 	@Override
 	public void init() {
