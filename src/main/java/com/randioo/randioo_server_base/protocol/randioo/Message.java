@@ -136,14 +136,9 @@ public class Message {
 		this.dataLength = (this.dataLength + msgBytes.length + 5);
 	}
 
-	public String getString(IoSession is) {
+	public String getString() {
 		this.data.get();
 		int strLen = this.data.getInt();
-		if (strLen > 2048) {
-			Integer roleInteger = (Integer) is.getAttribute("roleId");
-			System.err.println("client need string length：" + strLen + " roleid:" + roleInteger);
-			return null;
-		}
 		byte[] strBytes = new byte[strLen];
 		this.data.get(strBytes);
 		String msgStr = new String(strBytes, charset).trim();

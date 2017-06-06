@@ -11,7 +11,7 @@ public class MessageCodecFactory implements ProtocolCodecFactory {
 	private final MessageEncoder encoder;
 	private final MessageDecoder decoder;
 
-	public MessageCodecFactory(Charset charset) {
+	public MessageCodecFactory() {
 		this.encoder = new MessageEncoder();
 		this.decoder = new MessageDecoder();
 	}
