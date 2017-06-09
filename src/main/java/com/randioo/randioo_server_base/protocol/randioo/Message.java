@@ -1,10 +1,10 @@
 package com.randioo.randioo_server_base.protocol.randioo;
 
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
 
 import org.apache.mina.core.buffer.IoBuffer;
-import org.apache.mina.core.session.IoSession;
 
 import com.randioo.randioo_server_base.config.ServerConfig;
 
@@ -178,5 +178,65 @@ public class Message {
 
 	public IoBuffer rewind() {
 		return this.data.rewind();
+	}
+	
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		short type = this.getType(); // 指令号
+		sb.append(type).append(" { ").append(System.lineSeparator());
+		int i = 1;
+		IoBuffer iob = this.getData();
+		while (iob.hasRemaining()) {
+			byte paramType = iob.get();
+			switch (paramType) {
+			case 3:
+				sb.append("short : ").append(iob.getShort()).append(System.lineSeparator());
+				break;
+			case 1:
+				sb.append("int : ").append(iob.getInt()).append(System.lineSeparator());
+				break;
+			case 4:
+				sb.append("long : ").append(iob.getLong()).append(System.lineSeparator());
+				break;
+			case 2:
+				int length = iob.getInt();
+				byte[] strBytes = new byte[length];
+				iob.get(strBytes);
+				try {
+					String msgStr = new String(strBytes, "UTF-8");
+					sb.append("length : ").append(length).append(" string : ").append(msgStr)
+							.append(System.lineSeparator());
+				} catch (UnsupportedEncodingException e) {
+					e.printStackTrace();
+				}
+				break;
+			case 5:
+				byte bresult = iob.get();
+				sb.append("bool : ").append(bresult == 1).append(System.lineSeparator());
+				break;
+			case 6:
+				byte bresultNum = iob.get();
+				sb.append("byte : ").append(bresultNum).append(System.lineSeparator());
+				break;
+			case 7:
+				int blength = iob.getInt();
+				byte[] bBytes = new byte[blength];
+				iob.get(bBytes);
+				for (byte b : bBytes)
+					sb.append("length : ").append(blength).append(" bytes : ").append(b).append(" ");
+				sb.append(System.lineSeparator());
+				break;
+			case 8:
+				double doubleNum = iob.getDouble();
+				sb.append("double : ").append(doubleNum).append(System.lineSeparator());
+				break;
+			default:
+				sb.append("error byte field! index=" + i).append(System.lineSeparator());
+			}
+			i++;
+		}
+		sb.append(" }").append(System.lineSeparator());
+		return sb.toString();
 	}
 }

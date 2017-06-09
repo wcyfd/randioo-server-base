@@ -41,7 +41,8 @@ public class WanServer {
 		ioAcceptor.setHandler(handler);
 		try {
 			ioAcceptor.bind(inetSocketAddress);
-			logger.info("WANSERVER : START SERVER SUCCESS");
+			logger.info("WANSERVER : START SERVER SUCCESS -> " + handler.getClass().getSimpleName() + " -> socket port:"
+					+ inetSocketAddress.getPort());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
