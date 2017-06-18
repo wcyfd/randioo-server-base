@@ -3,7 +3,7 @@
 
 	<groupId>com.randioo</groupId>
 	<artifactId>randioo-server-base</artifactId>
-	<version>0.0.4</version>
+	<version>4.0.0</version>
 	<packaging>jar</packaging>
 
 	<name>randioo-server-base</name>
