@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import com.randioo.randioo_server_base.cache.RoleCache;
 import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.module.BaseService;
+import com.randioo.randioo_server_base.utils.GameUtils;
 import com.randioo.randioo_server_base.utils.template.Ref;
 
 @Service("roleModelService")
@@ -39,15 +40,7 @@ public class RoleModelServiceImpl extends BaseService implements RoleModelServic
 	 */
 	@Override
 	public int protectedGetTotalValue(int originValue, int addValue) {
-		int total = originValue + addValue;
-		if (total < 0) {
-			if (addValue >= 0) {
-				total = Integer.MAX_VALUE;
-			} else {
-				total = 0;
-			}
-		}
-		return total;
+		return GameUtils.protectedGetTotalValue(originValue, addValue);
 	}
 
 }

@@ -11,4 +11,6 @@ public interface LoginModelService extends BaseServiceInterface{
 	boolean login(LoginInfo loginInfo);
 	boolean createRole(LoginCreateInfo loginInfo,Ref<Integer> errorCode);
 	RoleInterface getRoleData(LoginInfo loginInfo,Ref<Integer> errorCode, IoSession ioSession);
+	RoleInterface getRoleInterfaceById(int roleId);
+	RoleInterface getRoleInterfaceByAccount(String account);
 }

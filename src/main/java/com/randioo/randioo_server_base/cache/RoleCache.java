@@ -14,6 +14,8 @@ public class RoleCache {
 	private static ConcurrentMap<String, RoleInterface> roleAccountMap = new ConcurrentHashMap<>();
 	/** 姓名集合 */
 	private static Map<String, String> nameSet = new ConcurrentHashMap<>();
+	/** 账号集合 */
+	private static Map<String, String> accountSet = new ConcurrentHashMap<>();
 
 	/**
 	 * 根据id获取角色缓存
@@ -54,6 +56,10 @@ public class RoleCache {
 		return nameSet;
 	}
 
+	public static Map<String, String> getAccountSet() {
+		return accountSet;
+	}
+
 	public static ConcurrentMap<Integer, RoleInterface> getRoleMap() {
 		return roleMap;
 	}
@@ -62,12 +68,17 @@ public class RoleCache {
 		roleMap.put(role.getRoleId(), role);
 		roleAccountMap.put(role.getAccount(), role);
 		nameSet.put(role.getName(), role.getName());
+		accountSet.put(role.getAccount(), role.getAccount());
 	}
 
 	public static void putRoleCache(RoleInterface role) {
-		roleMap.put(role.getRoleId(), role);
-		roleAccountMap.put(role.getAccount(), role);
-		nameSet.put(role.getName(), role.getName());
+		if (!roleMap.containsKey(role.getRoleId())) {
+			roleMap.put(role.getRoleId(), role);
+			roleAccountMap.put(role.getAccount(), role);
+			nameSet.put(role.getName(), role.getName());
+			accountSet.put(role.getAccount(), role.getAccount());
+		}
+
 	}
 
 	public static ConcurrentMap<String, RoleInterface> getRoleAccountMap() {

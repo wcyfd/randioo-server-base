@@ -8,7 +8,7 @@ package com.randioo.randioo_server_base.module.login;
  */
 public class LoginInfo {
 	private String account;
-
+	
 	public String getAccount() {
 		return account;
 	}

@@ -2,6 +2,8 @@ package com.randioo.randioo_server_base.utils;
 
 public class StringUtils {
 	public static final String fileSplit = System.getProperty("file.separator");
+	public static final String lineSplit = System.getProperty("line.separator");
+
 	/**
 	 * 检查字符串数据是否改变，属性与方法一一对应
 	 * 
@@ -68,12 +70,13 @@ public class StringUtils {
 
 	/**
 	 * 字符串是否是空
+	 * 
 	 * @param str
 	 * @return
 	 * @author wcy 2017年3月7日
 	 */
 	public static boolean isNullOrEmpty(String str) {
-		if (str == null || str.equals(""))
+		if (str == null || str.trim().equals(""))
 			return true;
 		return false;
 	}

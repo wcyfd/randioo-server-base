@@ -4,9 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class GlobleParams {
-	public enum DEBUG{
-		debug
-	}
+	
 	private static Set<String> params = new HashSet<>();
 
 	public static Set<String> getParams() {

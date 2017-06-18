@@ -8,6 +8,8 @@ import java.util.Date;
 public class TimeUtils {
 	private static final String yearFormat = "yyyy-MM-dd";
 	private static final DateFormat dateFormat = new SimpleDateFormat(yearFormat);
+	private static final String dateFormatStr = "yyyy-MM-dd HH:mm:ss";
+	private static final DateFormat detailDateFormat = new SimpleDateFormat(dateFormatStr);
 
 	public static int getNowTime() {
 		return (int) (System.currentTimeMillis() / 1000);
@@ -66,4 +68,12 @@ public class TimeUtils {
 	public static long parseInt2Long(int time) {
 		return ((long) time) * 1000;
 	}
+
+	public static String getDateStr() {
+		Date date = new Date();
+		String value = detailDateFormat.format(date);
+		date = null;
+		return value;
+	}
+
 }

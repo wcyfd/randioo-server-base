@@ -1,5 +1,6 @@
 package com.randioo.randioo_server_base.module.login;
 
+import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.mina.core.session.IoSession;
@@ -32,7 +33,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 
 		boolean isNewAccount = false;
 		try {
-			isNewAccount = RoleCache.getRoleByAccount(loginInfo.getAccount()) == null;
+			isNewAccount = !RoleCache.getAccountSet().containsKey(loginInfo.getAccount());
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -88,8 +89,8 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	 * @author wcy 2017年2月17日
 	 */
 	private boolean canCreate(LoginCreateInfo info, Ref<Integer> errorCode) {
-		RoleInterface roleInterface = RoleCache.getRoleByAccount(info.getAccount());
-		if (roleInterface != null) {
+
+		if (RoleCache.getAccountSet().containsKey(info.getAccount())) {
 			errorCode.set(LoginModelConstant.CREATE_ROLE_EXIST);
 			return false;
 		}
@@ -120,21 +121,19 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 			if (oldSession != null) {
 				// 该账号已登录
 				if (oldSession.isConnected()) {
-					boolean connectingError = loginHandler.canSynLogin();
-					errorCode.set(LoginModelConstant.GET_ROLE_DATA_IN_LOGIN);
-					if (!connectingError) {
+					boolean canSynLogin = loginHandler.canSynLogin();
+					if (!canSynLogin) {
+						errorCode.set(LoginModelConstant.GET_ROLE_DATA_IN_LOGIN);
 						return null;
 					}
-				} else {
-					// 设置登陆时间
-					roleInterface.setLoginTime(nowTime);
 				}
+
 				oldSession.setAttribute("roleId", null);
-				oldSession.close(false);
-			} else {
-				// 设置登陆时间
-				roleInterface.setLoginTime(nowTime);
+				oldSession.close(true);
 			}
+			
+			// 设置登陆时间
+			roleInterface.setLoginTime(nowTime);
 
 			// session绑定ID
 			ioSession.setAttribute("roleId", roleId);
@@ -151,6 +150,62 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 		} finally {
 			reentrantLock.unlock();
 		}
+	}
+
+	@Override
+	public RoleInterface getRoleInterfaceById(int roleId) {
+		RoleInterface role = RoleCache.getRoleById(roleId);
+		if (role == null) {
+			role = loginHandler.getRoleInterfaceFromDBById(roleId);
+			if (role == null) {
+				return null;
+			}
+			Lock lock = CacheLockUtil.getLock(String.class, role.getAccount());
+			lock.lock();
+			try {
+				RoleInterface role2 = RoleCache.getRoleById(roleId);
+				if (role2 != null) {
+					return role2;
+				}
+
+				loginHandler.loginRoleModuleDataInit(role);
+				RoleCache.putRoleCache(role);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				lock.unlock();
+			}
+
+		}
+		return role;
+	}
+
+	@Override
+	public RoleInterface getRoleInterfaceByAccount(String account) {
+		RoleInterface role = RoleCache.getRoleByAccount(account);
+		if (role == null) {
+			role = loginHandler.getRoleInterfaceFromDBByAccount(account);
+			if (role == null) {
+				return null;
+			}
+			Lock lock = CacheLockUtil.getLock(String.class, account);
+			lock.lock();
+			try {
+				RoleInterface role2 = RoleCache.getRoleByAccount(account);
+				if (role2 != null) {
+					return role2;
+				}
+
+				loginHandler.loginRoleModuleDataInit(role);
+				RoleCache.putRoleCache(role);
+			} catch (Exception e) {
+				e.printStackTrace();
+			} finally {
+				lock.unlock();
+			}
+
+		}
+		return role;
 	}
 
 }

@@ -6,13 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import com.randioo.randioo_server_base.utils.template.Function;
 
 public class Observable {
-	private Map<Observer, Function> observerMap = null;
-
-	/** Construct an Observable with zero Observers. */
-
-	public Observable() {
-		observerMap = new ConcurrentHashMap<>();
-	}
+	private Map<Observer, Function> observerMap = new ConcurrentHashMap<>();
 
 	/**
 	 * Adds an observer to the set of observers for this object, provided that
@@ -95,10 +89,9 @@ public class Observable {
 		 */
 
 		for (Map.Entry<Observer, Function> entrySet : observerMap.entrySet()) {
-			Observer observer = entrySet.getKey();
 			Function function = entrySet.getValue();
 			try {
-				function.apply(observer, arg);
+				function.apply(this, arg);
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
