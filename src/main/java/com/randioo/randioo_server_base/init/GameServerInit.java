@@ -10,7 +10,7 @@ import org.springframework.stereotype.Service;
 
 import com.randioo.randioo_server_base.config.GlobleConfig;
 import com.randioo.randioo_server_base.config.GlobleConfig.GlobleEnum;
-import com.randioo.randioo_server_base.net.IoHandlerAdapter;
+import com.randioo.randioo_server_base.handler.GameServerHandlerAdapter;
 import com.randioo.randioo_server_base.net.WanServer;
 import com.randioo.randioo_server_base.protocol.protobuf.ProtoCodecFactory;
 import com.randioo.randioo_server_base.scheduler.SchedulerManager;
@@ -26,22 +26,18 @@ public class GameServerInit {
 	@Autowired
 	private SchedulerManager schedulerManager;
 
-	private IoHandlerAdapter handler;
-
-	public GameServerInit setHandler(IoHandlerAdapter handler) {
-		this.handler = handler;
-		return this;
-	}
+	@Autowired
+	private GameServerHandlerAdapter gameServerHandlerAdapter;
 
 	public void start() {
 		serviceManager.initServices();
+		logger.info("init Services");
 
 		schedulerManager.start();
+		logger.info("scheduler start");
 
-		WanServer.startServer(new ProtocolCodecFilter(new ProtoCodecFactory()), handler,
+		WanServer.startServer(new ProtocolCodecFilter(new ProtoCodecFactory()), gameServerHandlerAdapter,
 				new InetSocketAddress(GlobleConfig.Int(GlobleEnum.PORT)));
-
-		logger.info("socket port:" + GlobleConfig.Int(GlobleEnum.PORT));
+		logger.info("socket start");
 	}
-
 }
