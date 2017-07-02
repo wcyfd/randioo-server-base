@@ -1,11 +1,17 @@
 package com.randioo.randioo_server_base.module.login;
 
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.mina.core.session.IoSession;
 import org.springframework.stereotype.Service;
 
+import com.google.common.cache.CacheBuilder;
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+import com.google.common.cache.RemovalListener;
+import com.google.common.cache.RemovalNotification;
 import com.randioo.randioo_server_base.cache.RoleCache;
 import com.randioo.randioo_server_base.cache.SessionCache;
 import com.randioo.randioo_server_base.entity.RoleInterface;
@@ -24,20 +30,60 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 		this.loginHandler = loginHandler;
 	}
 
+	private LoadingCache<String, RoleInterface> roleCache = CacheBuilder.newBuilder()
+			.expireAfterAccess(10, TimeUnit.MINUTES).removalListener(new RemovalListener<String, RoleInterface>() {
+
+				@Override
+				public void onRemoval(RemovalNotification<String, RoleInterface> notification) {
+					String account = notification.getKey();
+					RoleInterface roleInterface = notification.getValue();
+					Lock lock = getRoleLock(account);
+					try {
+						lock.lock();
+						loginHandler.saveRole(roleInterface);
+					} catch (Exception e) {
+						logger.error("remove from cache error", e);
+					} finally {
+						lock.unlock();
+					}
+				}
+			}).build(new CacheLoader<String, RoleInterface>() {
+
+				@Override
+				public RoleInterface load(String account) throws Exception {
+					Lock lock = getRoleLock(account);
+					try {
+						lock.lock();
+						RoleInterface role = loginHandler.getRoleInterfaceFromDBByAccount(account);
+						if (role == null)
+							return null;
+
+						loginHandler.loginRoleModuleDataInit(role);
+
+						putStaticRoleData(role);
+						return role;
+					} catch (Exception e) {
+						logger.error("getRoleData error", e);
+					} finally {
+						lock.unlock();
+					}
+					return null;
+				}
+			});
+
 	@Override
 	public boolean login(LoginInfo loginInfo) {
 		String account = loginInfo.getAccount();
 
-		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
-		reentrantLock.lock();
-
+		Lock lock = getRoleLock(account);
 		boolean isNewAccount = false;
 		try {
-			isNewAccount = !RoleCache.getAccountSet().containsKey(loginInfo.getAccount());
+			lock.lock();
+			isNewAccount = !RoleCache.getAccountSet().containsKey(account);
 		} catch (Exception e) {
-			e.printStackTrace();
+			logger.error("", e);
 		} finally {
-			reentrantLock.unlock();
+			lock.unlock();
 		}
 		return isNewAccount;
 	}
@@ -50,9 +96,9 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 			return false;
 		}
 
-		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
-		reentrantLock.lock();
+		Lock lock = getRoleLock(account);
 		try {
+			lock.lock();
 			// 双重检测帐号是否可以注册
 			if (!this.canCreate(loginCreateInfo, errorCode)) {
 				return false;
@@ -63,7 +109,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 				RoleInterface roleInterface = loginHandler.createRole(loginCreateInfo);
 				roleInterface.setCreateTimeStr(TimeUtils.getDetailTimeStr());
 
-				RoleCache.putNewRole(roleInterface);
+				this.putNewRole(roleInterface);
 
 				return true;
 			} catch (Exception e1) {
@@ -73,7 +119,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
-			reentrantLock.unlock();
+			lock.unlock();
 		}
 		errorCode.set(LoginModelConstant.CREATE_ROLE_FAILED);
 		return false;
@@ -103,10 +149,10 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	public RoleInterface getRoleData(LoginInfo loginInfo, Ref<Integer> errorCode, IoSession ioSession) {
 		String account = loginInfo.getAccount();
 		String nowTime = TimeUtils.getDetailTimeStr();
-		ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
-		reentrantLock.lock();
+		Lock lock = getRoleLock(account);
 
 		try {
+			lock.lock();
 			// 获得玩家对象
 			RoleInterface roleInterface = this.getRoleInterfaceByAccount(account);
 			if (roleInterface == null) {
@@ -126,84 +172,116 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 						return null;
 					}
 				}
-				oldSession.setAttribute("roleId", null);
+				sessionBindRole(oldSession, null);
 				oldSession.close(true);
 			}
 			// 设置登陆时间
 			roleInterface.setLoginTimeStr(nowTime);
 
 			// session绑定ID
-			ioSession.setAttribute("roleId", roleId);
+			sessionBindRole(ioSession, roleId);
 			// session放入缓存
 			SessionCache.addSession(roleId, ioSession);
-
-			// 将数据库中的数据放入缓存中
-			RoleCache.putRoleCache(roleInterface);
 
 			return roleInterface;
 		} catch (Exception e) {
 			e.printStackTrace();
 			return null;
 		} finally {
-			reentrantLock.unlock();
+			lock.unlock();
 		}
 	}
 
 	@Override
 	public RoleInterface getRoleInterfaceById(int roleId) {
-		RoleInterface role = RoleCache.getRoleById(roleId);
-		if (role == null) {
-			role = loginHandler.getRoleInterfaceFromDBById(roleId);
-			if (role == null) {
-				return null;
-			}
-			Lock lock = CacheLockUtil.getLock(String.class, role.getAccount());
-			lock.lock();
-			try {
-				RoleInterface role2 = RoleCache.getRoleById(roleId);
-				if (role2 != null) {
-					return role2;
-				}
+		// roleId映射到account
+		String account = roleId2Account(roleId);
+		if (account == null)
+			return null;
 
-				loginHandler.loginRoleModuleDataInit(role);
-				RoleCache.putRoleCache(role);
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				lock.unlock();
-			}
-
+		try {
+			RoleInterface role = roleCache.get(account);
+			return role;
+		} catch (ExecutionException e) {
+			e.printStackTrace();
 		}
-		return role;
+		return null;
+	}
+
+	private String roleId2Account(int roleId) {
+		String account = RoleCache.getRoleIdAccountMap().get(roleId);
+		if (account == null) {
+			account = loginHandler.getAccountFromDBById(roleId);
+		}
+		return account;
+	}
+
+	@Override
+	public Lock getRoleLock(String account) {
+		return CacheLockUtil.getLock(RoleInterface.class, account);
 	}
 
 	@Override
 	public RoleInterface getRoleInterfaceByAccount(String account) {
-		RoleInterface role = RoleCache.getRoleByAccount(account);
-		if (role == null) {
-			role = loginHandler.getRoleInterfaceFromDBByAccount(account);
-			if (role == null) {
-				return null;
-			}
-			Lock lock = CacheLockUtil.getLock(String.class, account);
-			lock.lock();
-			try {
-				RoleInterface role2 = RoleCache.getRoleByAccount(account);
-				if (role2 != null) {
-					return role2;
-				}
-
-				loginHandler.loginRoleModuleDataInit(role);
-				RoleCache.putRoleCache(role);
-
-			} catch (Exception e) {
-				e.printStackTrace();
-			} finally {
-				lock.unlock();
-			}
-
+		try {
+			RoleInterface role = roleCache.get(account);
+			return role;
+		} catch (ExecutionException e1) {
+			e1.printStackTrace();
 		}
-		return role;
+		return null;
+	}
+
+	private void putStaticRoleData(RoleInterface roleInterface) {
+		// 添加roleId和帐号的映射
+		RoleCache.getRoleIdAccountMap().put(roleInterface.getRoleId(), roleInterface.getAccount());
+		// 添加帐号集
+		RoleCache.getAccountSet().put(roleInterface.getAccount(), false);
+		RoleCache.getNameSet().put(roleInterface.getName(), false);
+	}
+
+	private void putNewRole(RoleInterface roleInterface) {
+		roleCache.put(roleInterface.getAccount(), roleInterface);
+
+		this.putStaticRoleData(roleInterface);
+	}
+
+	@Override
+	public RoleInterface getRoleBySession(IoSession ioSession) {
+		try {
+			Integer roleId = (Integer) getSessionBindValue(ioSession);
+			if (roleId == null)
+				return null;
+			RoleInterface role = this.getRoleInterfaceById(roleId);
+			if (role == null)
+				return null;
+			return role;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return null;
+		}
+	}
+
+	/**
+	 * session绑定玩家
+	 * 
+	 * @param session
+	 * @param value
+	 */
+	private void sessionBindRole(IoSession session, Object value) {
+		session.setAttribute(getSessionKey(), value);
+	}
+
+	private Object getSessionBindValue(IoSession session) {
+		return session.getAttribute(getSessionKey());
+	}
+
+	/**
+	 * 
+	 * @return
+	 */
+	private Object getSessionKey() {
+		return "roleId";
 	}
 
 }

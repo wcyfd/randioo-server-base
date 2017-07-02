@@ -1,5 +1,7 @@
 package com.randioo.randioo_server_base.module.login;
 
+import java.util.concurrent.locks.Lock;
+
 import org.apache.mina.core.session.IoSession;
 
 import com.randioo.randioo_server_base.entity.RoleInterface;
@@ -18,5 +20,14 @@ public interface LoginModelService extends BaseServiceInterface {
 	RoleInterface getRoleInterfaceById(int roleId);
 
 	RoleInterface getRoleInterfaceByAccount(String account);
+
+	RoleInterface getRoleBySession(IoSession ioSession);
+
+	/**
+	 * 
+	 * @param account
+	 * @return
+	 */
+	Lock getRoleLock(String account);
 
 }

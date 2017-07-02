@@ -32,10 +32,12 @@ public interface LoginHandler {
 	 */
 	boolean canSynLogin();
 
-	RoleInterface getRoleInterfaceFromDBById(int roleId);
+	String getAccountFromDBById(int roleId);
 
 	RoleInterface getRoleInterfaceFromDBByAccount(String account);
 
 	void loginRoleModuleDataInit(RoleInterface roleInterface);
+
+	void saveRole(RoleInterface roleInterface);
 
 }

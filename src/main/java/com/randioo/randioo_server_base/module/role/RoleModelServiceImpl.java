@@ -25,7 +25,7 @@ public class RoleModelServiceImpl extends BaseService implements RoleModelServic
 			String oldName = roleInterface.getName();
 			roleInterface.setName(name);
 			RoleCache.getNameSet().remove(oldName);
-			RoleCache.getNameSet().put(name, name);
+			RoleCache.getNameSet().put(name, false);
 		}
 		return result;
 	}
