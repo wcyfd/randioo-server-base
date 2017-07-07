@@ -1,7 +1,7 @@
 package com.randioo.randioo_server_base.module.login;
 
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import org.apache.mina.core.session.IoSession;
@@ -30,123 +30,55 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 		this.loginHandler = loginHandler;
 	}
 
-	private LoadingCache<String, RoleInterface> roleCache = CacheBuilder.newBuilder()
-			.expireAfterAccess(10, TimeUnit.MINUTES).removalListener(new RemovalListener<String, RoleInterface>() {
+	private LoadingCache<String, RoleInterface> roleCache = null;
 
-				@Override
-				public void onRemoval(RemovalNotification<String, RoleInterface> notification) {
-					String account = notification.getKey();
-					RoleInterface roleInterface = notification.getValue();
-					Lock lock = getRoleLock(account);
-					try {
-						lock.lock();
-						loginHandler.saveRole(roleInterface);
-					} catch (Exception e) {
-						logger.error("remove from cache error", e);
-					} finally {
-						lock.unlock();
-					}
+	@Override
+	public void init() {
+		CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
+		loginHandler.buildCache(cacheBuilder);
+		roleCache = cacheBuilder.removalListener(new RemovalListener<String, RoleInterface>() {
+
+			@Override
+			public void onRemoval(RemovalNotification<String, RoleInterface> notification) {
+				String account = notification.getKey();
+				RoleInterface roleInterface = notification.getValue();
+				Lock lock = getRoleLock(account);
+				try {
+					lock.lock();
+					loginHandler.saveRole(roleInterface);
+				} catch (Exception e) {
+					logger.error("remove from cache error", e);
+				} finally {
+					lock.unlock();
 				}
-			}).build(new CacheLoader<String, RoleInterface>() {
+			}
+		}).build(new CacheLoader<String, RoleInterface>() {
 
-				@Override
-				public RoleInterface load(String account) throws Exception {
-					Lock lock = getRoleLock(account);
-					try {
-						lock.lock();
-						RoleInterface role = loginHandler.getRoleInterfaceFromDBByAccount(account);
-						if (role == null)
-							return null;
+			@Override
+			public RoleInterface load(String account) throws Exception {
+				Lock lock = getRoleLock(account);
+				try {
+					lock.lock();
+					RoleInterface role = loginHandler.getRoleInterfaceFromDBByAccount(account);
+					if (role == null)
+						return null;
 
-						loginHandler.loginRoleModuleDataInit(role);
+					loginHandler.loginRoleModuleDataInit(role);
 
-						putStaticRoleData(role);
-						return role;
-					} catch (Exception e) {
-						logger.error("getRoleData error", e);
-					} finally {
-						lock.unlock();
-					}
-					return null;
+					putStaticRoleData(role);
+					return role;
+				} catch (Exception e) {
+					logger.error("getRoleData error", e);
+				} finally {
+					lock.unlock();
 				}
-			});
-
-	@Override
-	public boolean login(LoginInfo loginInfo) {
-		String account = loginInfo.getAccount();
-
-		Lock lock = getRoleLock(account);
-		boolean isNewAccount = false;
-		try {
-			lock.lock();
-			isNewAccount = !RoleCache.getAccountSet().containsKey(account);
-		} catch (Exception e) {
-			logger.error("", e);
-		} finally {
-			lock.unlock();
-		}
-		return isNewAccount;
-	}
-
-	@Override
-	public boolean createRole(LoginCreateInfo loginCreateInfo, Ref<Integer> errorCode) {
-		String account = loginCreateInfo.getAccount();
-		// 双重检测帐号是否可以注册
-		if (!this.canCreate(loginCreateInfo, errorCode)) {
-			return false;
-		}
-
-		Lock lock = getRoleLock(account);
-		try {
-			lock.lock();
-			// 双重检测帐号是否可以注册
-			if (!this.canCreate(loginCreateInfo, errorCode)) {
-				return false;
+				return null;
 			}
-
-			// 创建账号
-			try {
-				RoleInterface roleInterface = loginHandler.createRole(loginCreateInfo);
-				roleInterface.setCreateTimeStr(TimeUtils.getDetailTimeStr());
-
-				this.putNewRole(roleInterface);
-
-				return true;
-			} catch (Exception e1) {
-				e1.printStackTrace();
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		} finally {
-			lock.unlock();
-		}
-		errorCode.set(LoginModelConstant.CREATE_ROLE_FAILED);
-		return false;
-
-	}
-
-	/**
-	 * 能否创建
-	 * 
-	 * @param info
-	 * @param errorCode
-	 * @return
-	 * @author wcy 2017年2月17日
-	 */
-	private boolean canCreate(LoginCreateInfo info, Ref<Integer> errorCode) {
-		if (RoleCache.getAccountSet().containsKey(info.getAccount())) {
-			errorCode.set(LoginModelConstant.CREATE_ROLE_EXIST);
-			return false;
-		}
-		if (!loginHandler.createRoleCheckAccount(info, errorCode)) {
-			return false;
-		}
-		return true;
+		});
 	}
 
 	@Override
-	public RoleInterface getRoleData(LoginInfo loginInfo, Ref<Integer> errorCode, IoSession ioSession) {
+	public RoleInterface getRoleData(LoginInfo loginInfo, Ref<Integer> errorCode, IoSession session) {
 		String account = loginInfo.getAccount();
 		String nowTime = TimeUtils.getDetailTimeStr();
 		Lock lock = getRoleLock(account);
@@ -156,32 +88,60 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 			// 获得玩家对象
 			RoleInterface roleInterface = this.getRoleInterfaceByAccount(account);
 			if (roleInterface == null) {
-				errorCode.set(LoginModelConstant.GET_ROLE_DATA_NOT_EXIST);
-				return null;
-			}
+				// 账号不存在，检查帐号格式是否合法
+				boolean checkAccount = loginHandler.createRoleCheckAccount(loginInfo, errorCode);
+				// 账号格式不合法,返回错误码
+				if (!checkAccount) {
+					errorCode.set(LoginModelConstant.GET_ROLE_DATA_NOT_EXIST);
+					return null;
+				} else {
+					try {
+						// 帐号合法,创建用户
+						roleInterface = loginHandler.createRole(loginInfo);
+						roleInterface.setCreateTimeStr(TimeUtils.getDetailTimeStr());
 
-			int roleId = roleInterface.getRoleId();
-			IoSession oldSession = SessionCache.getSessionById(roleId);
-
-			if (oldSession != null) {
-				// 该账号已登录
-				if (oldSession.isConnected()) {
-					boolean canSynLogin = loginHandler.canSynLogin();
-					if (!canSynLogin) {
-						errorCode.set(LoginModelConstant.GET_ROLE_DATA_IN_LOGIN);
+						this.putNewRole(roleInterface);
+					} catch (Exception e) {
+						e.printStackTrace();
 						return null;
 					}
 				}
-				sessionBindRole(oldSession, null);
-				oldSession.close(true);
 			}
+
+			int roleId = roleInterface.getRoleId();
+
+			// 从该玩家的设备表中获得该设备
+			Facility newLoginFacility = this.getFacility(roleId, loginInfo);
+
+			// 如果有旧的连接，则检查该链接的设备号，如果设备号相同，则直接重新连接，如果设备号不相同则提示异地登录
+			Facility currentFacility = FacilityCache.getLoginFacilityMap().get(roleId);
+
+			Facility resultFacility = null;
+			if (currentFacility != null) {
+				// 设备号相同直接重新连接
+				if (currentFacility.getMacAddress().equals(newLoginFacility.getMacAddress())) {
+					resultFacility = currentFacility;
+				} else {
+					// 设备号不同
+					// 该次登陆的设备如果有旧的链接，则先关闭,然后再进行替换,新设备设置新的连接
+					resultFacility = newLoginFacility;
+					// 通知异地登陆并直接替换
+					loginHandler.noticeOtherPlaceLogin(currentFacility);
+				}
+			} else {
+				// 没有旧连接则直接加入
+				resultFacility = newLoginFacility;
+			}
+
+			resultFacility.setSession(session);
+			FacilityCache.getLoginFacilityMap().put(roleId, resultFacility);
 			// 设置登陆时间
 			roleInterface.setLoginTimeStr(nowTime);
 
 			// session绑定ID
-			sessionBindRole(ioSession, roleId);
+			sessionBindRole(session, roleId);
 			// session放入缓存
-			SessionCache.addSession(roleId, ioSession);
+			SessionCache.addSession(roleId, session);
 
 			return roleInterface;
 		} catch (Exception e) {
@@ -217,6 +177,36 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	@Override
+	public Facility getFacility(int roleId, LoginInfo loginInfo) {
+		Map<Integer, RoleFacilities> map = FacilityCache.getRoleFacilitiesMap();
+		String macAddress = loginInfo.getMacAddress();
+		// 缓存里没有去数据库查，如果还是没有则新建一个
+		if (!map.containsKey(roleId)) {
+			RoleFacilities roleFacilities = new RoleFacilities();
+			roleFacilities.setRoleId(roleId);
+			map.put(roleId, roleFacilities);
+		}
+
+		RoleFacilities roleFacilities = map.get(roleId);
+
+		Map<String, Facility> facilities = roleFacilities.getFacilities();
+		if (!facilities.containsKey(macAddress)) {
+			Facility facility = loginHandler.getFacilityFromDB(roleId, macAddress);
+			if (facility == null) {
+				facility = new Facility();
+				facility.setMacAddress(loginInfo.getMacAddress());
+				facility.setRoleId(roleId);
+				facilities.put(macAddress, facility);
+				loginHandler.saveFacility(facility);
+			}
+		}
+
+		Facility facility = facilities.get(macAddress);
+
+		return facility;
+	}
+
+	@Override
 	public Lock getRoleLock(String account) {
 		return CacheLockUtil.getLock(RoleInterface.class, account);
 	}
@@ -225,6 +215,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	public RoleInterface getRoleInterfaceByAccount(String account) {
 		try {
 			RoleInterface role = roleCache.get(account);
+
 			return role;
 		} catch (ExecutionException e1) {
 			e1.printStackTrace();

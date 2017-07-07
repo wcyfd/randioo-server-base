@@ -1,5 +1,6 @@
 package com.randioo.randioo_server_base.module.login;
 
+import com.google.common.cache.CacheBuilder;
 import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.template.Ref;
 
@@ -12,7 +13,7 @@ public interface LoginHandler {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	boolean createRoleCheckAccount(LoginCreateInfo info, Ref<Integer> errorCode);
+	boolean createRoleCheckAccount(LoginInfo info, Ref<Integer> errorCode);
 
 	/**
 	 * 创建帐号
@@ -22,15 +23,7 @@ public interface LoginHandler {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	RoleInterface createRole(LoginCreateInfo loginCreateInfo);
-
-	/**
-	 * 用户已经在某地连接的错误,如果不处理则返回null
-	 * 
-	 * @return
-	 * @author wcy 2016年11月30日
-	 */
-	boolean canSynLogin();
+	RoleInterface createRole(LoginInfo loginInfo);
 
 	String getAccountFromDBById(int roleId);
 
@@ -40,4 +33,17 @@ public interface LoginHandler {
 
 	void saveRole(RoleInterface roleInterface);
 
+	/**
+	 * 通知异地登录
+	 * 
+	 * @param oldFacility
+	 * @author wcy 2017年7月1日
+	 */
+	void noticeOtherPlaceLogin(Facility oldFacility);
+
+	Facility getFacilityFromDB(int roleId, String macAddress);
+
+	void saveFacility(Facility facility);
+
+	void buildCache(CacheBuilder cacheBuilder);
 }
