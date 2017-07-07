@@ -25,10 +25,12 @@ public class HttpUtils {
 			httpConn.connect();
 			// 建立输入流，向指向的URL传入参数
 
-			try (DataOutputStream dos = new DataOutputStream(httpConn.getOutputStream())) {
-				String param = getParam(map);
-				dos.writeBytes(param);
-				dos.flush();
+			if (map != null) {
+				try (DataOutputStream dos = new DataOutputStream(httpConn.getOutputStream())) {
+					String param = getParam(map);
+					dos.writeBytes(param);
+					dos.flush();
+				}
 			}
 
 			// 获得响应状态
@@ -99,6 +101,9 @@ public class HttpUtils {
 	 * @author wcy 2017年6月27日
 	 */
 	private static String getParam(Map<String, List<String>> map) {
+		if (map == null) {
+			return null;
+		}
 		StringBuilder sb = new StringBuilder();
 		int i = 0;
 		for (Map.Entry<String, List<String>> entrySet : map.entrySet()) {
