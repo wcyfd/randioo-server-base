@@ -9,9 +9,8 @@ import com.randioo.randioo_server_base.entity.GlobalConfigFunction;
 import com.randioo.randioo_server_base.utils.RandomUtils;
 
 public class GlobleConfig {
-	private static GlobleConfig _globleConfig = new GlobleConfig();
-	private Map<String, Object> paramMap = new HashMap<>();
-	private GlobalConfigFunction function = null;
+	private static Map<String, Object> paramMap = new HashMap<>();
+	private static GlobalConfigFunction function = null;
 
 	public enum GlobleEnum {
 		LOGIN, PORT, GM, DEBUG, SERVER_KEY
@@ -23,7 +22,7 @@ public class GlobleConfig {
 
 	public static void init(String... strings) {
 		List<String> list = Arrays.asList(strings);
-		Map<String, Object> _m = _globleConfig.paramMap;
+		Map<String, Object> _m = paramMap;
 
 		_m.put(GlobleEnum.PORT.name(), Integer.parseInt(list.get(0)));
 
@@ -32,29 +31,38 @@ public class GlobleConfig {
 		_m.put(GlobleEnum.GM.name(), list.contains(GlobleEnum.GM.name().toLowerCase()));
 		_m.put(GlobleEnum.DEBUG.name(), list.contains(GlobleEnum.DEBUG.name().toLowerCase()));
 		try {
-			if (_globleConfig.function != null)
-				_globleConfig.function.init(_m, list);
+			if (function != null)
+				function.init(_m, list);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 
 	}
 
-	public static GlobleConfig initParam(GlobalConfigFunction function) {
-		_globleConfig.function = function;
-		return _globleConfig;
+	public static void initParam(GlobalConfigFunction function) {
+		GlobleConfig.function = function;
 	}
 
 	public static int Int(String key) {
-		return (int) _globleConfig.paramMap.get(key);
+		Object result = paramMap.get(key);
+		if (result == null)
+			return 0;
+		return (int) result;
 	}
 
 	public static String String(String key) {
-		return (String) _globleConfig.paramMap.get(key);
+		Object result = paramMap.get(key);
+		if (result == null)
+			return null;
+		return (String) result;
+
 	}
 
 	public static boolean Boolean(String key) {
-		return (boolean) _globleConfig.paramMap.get(key);
+		Object result = paramMap.get(key);
+		if (result == null || !(Boolean) result)
+			return false;
+		return true;
 	}
 
 	public static int Int(GlobleEnum key) {
@@ -76,6 +84,14 @@ public class GlobleConfig {
 	public static void set(String key, Object value) {
 		if (value == null)
 			return;
-		_globleConfig.paramMap.put(key, value);
+		paramMap.put(key, value);
+	}
+	
+	public static void initBooleanValue(String key, List<String> list) {
+		int index = list.indexOf(key);
+		if (index != -1) {
+			boolean dispatch = Boolean.parseBoolean(list.get(index + 1));
+			paramMap.put(key, dispatch);
+		}
 	}
 }

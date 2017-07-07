@@ -23,6 +23,11 @@ public class WanServer {
 	}
 
 	public static void startServer(IoFilter ioFilter, IoHandlerAdapter handler, InetSocketAddress inetSocketAddress) {
+		startServer(ioFilter, handler, inetSocketAddress, null);
+	}
+
+	public static void startServer(IoFilter ioFilter, IoHandlerAdapter handler, InetSocketAddress inetSocketAddress,
+			SocketSessionConfigCallback callback) {
 		NioSocketAcceptor ioAcceptor = new NioSocketAcceptor();
 
 		ioAcceptor.getSessionConfig().setReadBufferSize(ServerConfig.getBufferSize());
@@ -31,6 +36,9 @@ public class WanServer {
 
 		ioAcceptor.getSessionConfig().setSendBufferSize(ServerConfig.getBufferSize());
 		ioAcceptor.getSessionConfig().setTcpNoDelay(true);
+		if (callback != null) {
+			callback.execute(ioAcceptor.getSessionConfig());
+		}
 
 		DefaultIoFilterChainBuilder chain = ioAcceptor.getFilterChain();
 
@@ -40,9 +48,10 @@ public class WanServer {
 
 		ioAcceptor.setHandler(handler);
 		try {
+			ioAcceptor.setReuseAddress(true);
 			ioAcceptor.bind(inetSocketAddress);
-			logger.info("WANSERVER : START SERVER SUCCESS -> " + handler.getClass().getSimpleName() + " -> socket port:"
-					+ inetSocketAddress.getPort());
+			logger.info("WANSERVER : START SERVER SUCCESS -> " + handler.getClass().getSimpleName()
+					+ " -> socket port:" + inetSocketAddress.getPort());
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}

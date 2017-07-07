@@ -26,7 +26,4 @@ public class SessionCache {
 		return sessionMap.values();
 	}
 
-	public static void removeSessionById(int id) {
-		sessionMap.remove(id);
-	}
 }

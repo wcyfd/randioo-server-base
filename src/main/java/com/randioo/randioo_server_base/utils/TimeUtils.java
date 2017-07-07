@@ -10,6 +10,8 @@ public class TimeUtils {
 	private static final DateFormat dateFormat = new SimpleDateFormat(yearFormat);
 	private static final String dateFormatStr = "yyyy-MM-dd HH:mm:ss";
 	private static final DateFormat detailDateFormat = new SimpleDateFormat(dateFormatStr);
+	private static final String hourFormat = "HH:mm:ss";
+	private static final DateFormat hourDateFormat = new SimpleDateFormat(hourFormat);
 
 	public static int getNowTime() {
 		return (int) (System.currentTimeMillis() / 1000);
@@ -76,4 +78,26 @@ public class TimeUtils {
 		return value;
 	}
 
+	public static int compareHHmmss(String time1, String time2) throws ParseException {
+		Date time1_1970 = hourDateFormat.parse(time1);
+		Date time2_1970 = hourDateFormat.parse(time2);
+		if (time1_1970.equals(time2_1970))
+			return 0;
+		if (time1_1970.before(time2_1970))
+			return -1;
+		return 1;
+	}
+
+	public static DateFormat getHHmmssDateFormat() {
+		return hourDateFormat;
+	}
+
+	public static void main(String[] args) {
+		try {
+			int i = compareHHmmss("4:11:10", "4:11:11");
+			System.out.println(i);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+	}
 }

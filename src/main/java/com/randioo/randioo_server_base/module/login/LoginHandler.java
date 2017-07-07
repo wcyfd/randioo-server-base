@@ -12,7 +12,7 @@ public interface LoginHandler {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	boolean createRoleCheckAccount(LoginCreateInfo info, Ref<Integer> errorCode);
+	boolean createRoleCheckAccount(LoginInfo info, Ref<Integer> errorCode);
 
 	/**
 	 * 创建帐号
@@ -22,20 +22,32 @@ public interface LoginHandler {
 	 * @return
 	 * @author wcy 2016年11月30日
 	 */
-	RoleInterface createRole(LoginCreateInfo loginCreateInfo);
-
-	/**
-	 * 用户已经在某地连接的错误,如果不处理则返回null
-	 * 
-	 * @return
-	 * @author wcy 2016年11月30日
-	 */
-	boolean canSynLogin();
+	RoleInterface createRole(LoginInfo loginInfo);
 
 	RoleInterface getRoleInterfaceFromDBById(int roleId);
 
 	RoleInterface getRoleInterfaceFromDBByAccount(String account);
 
 	void loginRoleModuleDataInit(RoleInterface roleInterface);
+
+	/**
+	 * 创建设备
+	 * 
+	 * @param roleId
+	 * @param loginInfo
+	 * @return
+	 * @author wcy 2017年7月1日
+	 */
+	Facility saveFacility(Facility facility);
+
+	/**
+	 * 通知异地登录
+	 * 
+	 * @param oldFacility
+	 * @author wcy 2017年7月1日
+	 */
+	void noticeOtherPlaceLogin(Facility oldFacility);
+
+	Facility getFacilityFromDB(int roleId, String macAddress);
 
 }

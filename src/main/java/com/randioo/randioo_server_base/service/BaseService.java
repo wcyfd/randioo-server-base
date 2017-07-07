@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 
 import com.randioo.randioo_server_base.annotation.PTAnnotation;
 import com.randioo.randioo_server_base.annotation.PTStringAnnotation;
+import com.randioo.randioo_server_base.entity.RoleInterface;
+import com.randioo.randioo_server_base.log.HttpLogUtils;
 import com.randioo.randioo_server_base.navigation.Navigation;
 import com.randioo.randioo_server_base.template.IActionSupport;
 import com.randioo.randioo_server_base.utils.PackageUtil;
@@ -20,7 +22,11 @@ public class BaseService implements BaseServiceInterface {
 	/**
 	 * 获得这个类的第一个接口
 	 */
-	protected Logger logger = LoggerFactory.getLogger(this.getClass().getInterfaces()[0].getSimpleName());
+	private Logger logger = LoggerFactory.getLogger(getSysName());
+
+	private String getSysName() {
+		return this.getClass().getInterfaces()[0].getSimpleName();
+	}
 
 	@Override
 	public void init() {
@@ -77,6 +83,54 @@ public class BaseService implements BaseServiceInterface {
 			key = ptString.value();
 		}
 		return key;
+	}
+
+	protected void loggerdebug(RoleInterface role, Object msg) {
+		logger.debug(HttpLogUtils.role(role, msg));
+	}
+
+	protected void loggerinfo(RoleInterface role, Object msg) {
+		logger.info(HttpLogUtils.role(role, msg));
+	}
+
+	protected void loggererror(RoleInterface role, String msg) {
+		logger.error(HttpLogUtils.role(role, msg));
+	}
+
+	protected void loggererror(RoleInterface role, String msg, Throwable e) {
+		logger.error(HttpLogUtils.role(role, msg), e);
+	}
+
+	protected void loggerwarn(RoleInterface role, String msg) {
+		logger.warn(HttpLogUtils.role(role, msg));
+	}
+
+	protected void loggerwarn(RoleInterface role, String msg, Throwable e) {
+		logger.warn(HttpLogUtils.role(role, msg), e);
+	}
+
+	protected void loggerdebug(String msg) {
+		logger.debug(HttpLogUtils.sys(getSysName(), msg));
+	}
+
+	protected void loggerinfo(String msg) {
+		logger.info(HttpLogUtils.sys(getSysName(), msg));
+	}
+
+	protected void loggererror(String msg) {
+		logger.error(HttpLogUtils.sys(getSysName(), msg));
+	}
+
+	protected void loggererror(String msg, Throwable e) {
+		logger.error(HttpLogUtils.sys(getSysName(), msg), e);
+	}
+
+	protected void loggerwarn(String msg) {
+		logger.warn(HttpLogUtils.sys(getSysName(), msg));
+	}
+
+	protected void loggerwarn(String msg, Throwable e) {
+		logger.warn(HttpLogUtils.sys(getSysName(), msg), e);
 	}
 
 }
