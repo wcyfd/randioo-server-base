@@ -28,4 +28,9 @@ public interface LoginModelService extends BaseServiceInterface {
 	 */
 	Lock getRoleInterfaceLock(String account);
 
+	/**
+	 * 清理
+	 */
+	void cleanUp();
+
 }

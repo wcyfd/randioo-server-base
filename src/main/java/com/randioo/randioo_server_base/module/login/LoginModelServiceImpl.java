@@ -278,6 +278,12 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 		return session.getAttribute(this.getSessionKey());
 	}
 
+	@Override
+	public void cleanUp() {
+		roleCache.cleanUp();
+		roleIdAccountCache.cleanUp();
+	}
+
 	/**
 	 * 
 	 * @return
