@@ -107,7 +107,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 				boolean checkAccount = loginHandler.createRoleCheckAccount(loginInfo, errorCode);
 				// 账号格式不合法,返回错误码
 				if (!checkAccount) {
-					errorCode.set(LoginModelConstant.GET_ROLE_DATA_NOT_EXIST);
+					errorCode.set(LoginModelConstant.LOGIN_CREATE_ACCOUNT_FORMAT_ERROR);
 					return null;
 				} else {
 					try {
@@ -118,6 +118,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 						this.putNewRole(roleInterface);
 					} catch (Exception e) {
 						loggererror("create role failed", e);
+						errorCode.set(LoginModelConstant.LOGIN_CREATE_ROLE_FAILED);
 						return null;
 					}
 				}
