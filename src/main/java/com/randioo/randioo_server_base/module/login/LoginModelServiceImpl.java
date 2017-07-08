@@ -12,7 +12,6 @@ import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 import com.google.common.cache.RemovalListener;
 import com.google.common.cache.RemovalNotification;
-import com.randioo.randioo_server_base.cache.RoleCache;
 import com.randioo.randioo_server_base.cache.SessionCache;
 import com.randioo.randioo_server_base.entity.RoleInterface;
 import com.randioo.randioo_server_base.lock.CacheLockUtil;
@@ -32,31 +31,34 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 
 	private LoadingCache<String, RoleInterface> roleCache = null;
 
+	private LoadingCache<Integer, String> roleIdAccountCache = null;
+
 	@Override
 	public void init() {
-		CacheBuilder<Object, Object> cacheBuilder = CacheBuilder.newBuilder();
-		loginHandler.buildCache(cacheBuilder);
-		roleCache = cacheBuilder.removalListener(new RemovalListener<String, RoleInterface>() {
+		CacheBuilder<Object, Object> roleCacheBuilder = CacheBuilder.newBuilder();
+		loginHandler.buildRoleInterfaceCache(roleCacheBuilder);
+		roleCache = roleCacheBuilder.removalListener(new RemovalListener<String, RoleInterface>() {
 
 			@Override
 			public void onRemoval(RemovalNotification<String, RoleInterface> notification) {
 				String account = notification.getKey();
 				RoleInterface roleInterface = notification.getValue();
-				Lock lock = getRoleLock(account);
+				Lock lock = getRoleInterfaceLock(account);
 				try {
 					lock.lock();
-					loginHandler.saveRole(roleInterface);
+					loginHandler.updateRole(roleInterface);
 				} catch (Exception e) {
-					logger.error("remove from cache error", e);
+					loggererror("remove from cache error", e);
 				} finally {
 					lock.unlock();
 				}
 			}
+
 		}).build(new CacheLoader<String, RoleInterface>() {
 
 			@Override
 			public RoleInterface load(String account) throws Exception {
-				Lock lock = getRoleLock(account);
+				Lock lock = getRoleInterfaceLock(account);
 				try {
 					lock.lock();
 					RoleInterface role = loginHandler.getRoleInterfaceFromDBByAccount(account);
@@ -65,15 +67,28 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 
 					loginHandler.loginRoleModuleDataInit(role);
 
-					putStaticRoleData(role);
+					putRoleCache(role);
 					return role;
 				} catch (Exception e) {
-					logger.error("getRoleData error", e);
+					loggererror("getRoleData error", e);
 				} finally {
 					lock.unlock();
 				}
 				return null;
 			}
+
+		});
+
+		CacheBuilder<Object, Object> roleIdAccountCacheBuilder = CacheBuilder.newBuilder();
+		loginHandler.buildRoleIdAccountCache(roleIdAccountCacheBuilder);
+		roleIdAccountCache = roleIdAccountCacheBuilder.build(new CacheLoader<Integer, String>() {
+
+			@Override
+			public String load(Integer key) throws Exception {
+				int roleId = key;
+				return loginHandler.getAccountFromDBById(roleId);
+			}
+
 		});
 	}
 
@@ -81,7 +96,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	public RoleInterface getRoleData(LoginInfo loginInfo, Ref<Integer> errorCode, IoSession session) {
 		String account = loginInfo.getAccount();
 		String nowTime = TimeUtils.getDetailTimeStr();
-		Lock lock = getRoleLock(account);
+		Lock lock = getRoleInterfaceLock(account);
 
 		try {
 			lock.lock();
@@ -102,7 +117,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 
 						this.putNewRole(roleInterface);
 					} catch (Exception e) {
-						e.printStackTrace();
+						loggererror("create role failed", e);
 						return null;
 					}
 				}
@@ -155,7 +170,12 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	@Override
 	public RoleInterface getRoleInterfaceById(int roleId) {
 		// roleId映射到account
-		String account = roleId2Account(roleId);
+		String account = null;
+		try {
+			account = roleIdAccountCache.get(roleId);
+		} catch (ExecutionException e) {
+			loggererror("function getRoleInterfaceById", e);
+		}
 		if (account == null)
 			return null;
 
@@ -166,14 +186,6 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 			e.printStackTrace();
 		}
 		return null;
-	}
-
-	private String roleId2Account(int roleId) {
-		String account = RoleCache.getRoleIdAccountMap().get(roleId);
-		if (account == null) {
-			account = loginHandler.getAccountFromDBById(roleId);
-		}
-		return account;
 	}
 
 	@Override
@@ -207,7 +219,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	@Override
-	public Lock getRoleLock(String account) {
+	public Lock getRoleInterfaceLock(String account) {
 		return CacheLockUtil.getLock(RoleInterface.class, account);
 	}
 
@@ -217,24 +229,22 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 			RoleInterface role = roleCache.get(account);
 
 			return role;
-		} catch (ExecutionException e1) {
-			e1.printStackTrace();
+		} catch (ExecutionException e) {
+			loggererror("function getRoleInterfaceByAccount error", e);
 		}
 		return null;
 	}
 
-	private void putStaticRoleData(RoleInterface roleInterface) {
+	private void putRoleCache(RoleInterface roleInterface) {
 		// 添加roleId和帐号的映射
-		RoleCache.getRoleIdAccountMap().put(roleInterface.getRoleId(), roleInterface.getAccount());
-		// 添加帐号集
-		RoleCache.getAccountSet().put(roleInterface.getAccount(), false);
-		RoleCache.getNameSet().put(roleInterface.getName(), false);
+		roleIdAccountCache.put(roleInterface.getRoleId(), roleInterface.getAccount());
 	}
 
 	private void putNewRole(RoleInterface roleInterface) {
+		// 向缓存中加入该玩家
 		roleCache.put(roleInterface.getAccount(), roleInterface);
 
-		this.putStaticRoleData(roleInterface);
+		this.putRoleCache(roleInterface);
 	}
 
 	@Override
@@ -248,7 +258,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 				return null;
 			return role;
 		} catch (Exception e) {
-			e.printStackTrace();
+			loggererror("function getRoleBySession error", e);
 			return null;
 		}
 	}
@@ -264,7 +274,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 	}
 
 	private Object getSessionBindValue(IoSession session) {
-		return session.getAttribute(getSessionKey());
+		return session.getAttribute(this.getSessionKey());
 	}
 
 	/**

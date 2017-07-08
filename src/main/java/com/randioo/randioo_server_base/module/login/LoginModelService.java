@@ -26,6 +26,6 @@ public interface LoginModelService extends BaseServiceInterface {
 	 * @param account
 	 * @return
 	 */
-	Lock getRoleLock(String account);
+	Lock getRoleInterfaceLock(String account);
 
 }

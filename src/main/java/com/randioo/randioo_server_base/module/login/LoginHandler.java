@@ -31,7 +31,7 @@ public interface LoginHandler {
 
 	void loginRoleModuleDataInit(RoleInterface roleInterface);
 
-	void saveRole(RoleInterface roleInterface);
+	void updateRole(RoleInterface roleInterface);
 
 	/**
 	 * 通知异地登录
@@ -45,5 +45,7 @@ public interface LoginHandler {
 
 	void saveFacility(Facility facility);
 
-	void buildCache(CacheBuilder cacheBuilder);
+	void buildRoleInterfaceCache(CacheBuilder<Object, Object> cacheBuilder);
+
+	void buildRoleIdAccountCache(CacheBuilder<Object, Object> cacheBuilder);
 }
