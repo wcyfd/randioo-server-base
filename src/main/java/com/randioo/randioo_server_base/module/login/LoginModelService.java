@@ -33,4 +33,9 @@ public interface LoginModelService extends BaseServiceInterface {
 	 */
 	void cleanUp();
 
+	/**
+	 * 删除所有缓存
+	 */
+	void invalidate();
+
 }

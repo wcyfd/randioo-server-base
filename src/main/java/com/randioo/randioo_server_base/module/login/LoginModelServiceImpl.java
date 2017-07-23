@@ -283,6 +283,11 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 		roleCache.cleanUp();
 		roleIdAccountCache.cleanUp();
 	}
+	
+	@Override
+	public void invalidate(){
+		roleCache.invalidateAll();		
+	}
 
 	/**
 	 * 
