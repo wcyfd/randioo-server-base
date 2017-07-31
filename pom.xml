@@ -4,7 +4,7 @@
 
 	<groupId>com.randioo</groupId>
 	<artifactId>randioo-server-base</artifactId>
-	<version>5.0.1</version>
+	<version>5.2.0</version>
 	<packaging>jar</packaging>
 
 	<name>randioo-server-base</name>
@@ -155,6 +155,13 @@
 			<groupId>org.json</groupId>
 			<artifactId>json</artifactId>
 			<version>20160212</version>
+		</dependency>
+		
+		<!-- https://mvnrepository.com/artifact/dom4j/dom4j -->
+		<dependency>
+			<groupId>dom4j</groupId>
+			<artifactId>dom4j</artifactId>
+			<version>1.6.1</version>
 		</dependency>
 		
 		<!-- https://mvnrepository.com/artifact/org.mybatis/mybatis -->
