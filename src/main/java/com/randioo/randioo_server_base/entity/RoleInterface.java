@@ -1,32 +1,80 @@
 package com.randioo.randioo_server_base.entity;
 
+/**
+ * 玩家接口
+ * 
+ * @author wcy 2017年8月5日
+ *
+ */
 public interface RoleInterface {
 
-	public void setRoleId(int roleId);
+    /**
+     * 玩家id
+     * 
+     * @param roleId
+     * @author wcy 2017年8月5日
+     */
+    public void setRoleId(int roleId);
 
-	public int getRoleId();
+    public int getRoleId();
 
-	public String getAccount();
+    /**
+     * 玩家帐号
+     * 
+     * @return
+     * @author wcy 2017年8月5日
+     */
+    public String getAccount();
 
-	public void setAccount(String account);
+    public void setAccount(String account);
 
-	public String getName();
+    /**
+     * 玩家昵称
+     * 
+     * @return
+     * @author wcy 2017年8月5日
+     */
+    public String getName();
 
-	public void setName(String name);
+    public void setName(String name);
 
-	public void setLoginTimeStr(String loginTimeStr);
+    /**
+     * 玩家登陆时间
+     * 
+     * @param loginTimeStr
+     * @author wcy 2017年8月5日
+     */
+    public void setLoginTimeStr(String loginTimeStr);
 
-	public String getLoginTimeStr();
+    public String getLoginTimeStr();
 
-	public void setOfflineTimeStr(String offlineTimeStr);
+    /**
+     * 玩家离线时间
+     * 
+     * @param offlineTimeStr
+     * @author wcy 2017年8月5日
+     */
+    public void setOfflineTimeStr(String offlineTimeStr);
 
-	public String getOfflineTimeStr();
+    public String getOfflineTimeStr();
 
-	public void setCreateTimeStr(String createTimeStr);
+    /**
+     * 玩家创建时间
+     * 
+     * @param createTimeStr
+     * @author wcy 2017年8月5日
+     */
+    public void setCreateTimeStr(String createTimeStr);
 
-	public String getCreateTimeStr();
-	
-	public void setLoadTimeStr(String loadTimeStr);
-	
-	public String getLoadTimeStr();
+    public String getCreateTimeStr();
+
+    /**
+     * 玩家载入时间
+     * 
+     * @param loadTimeStr
+     * @author wcy 2017年8月5日
+     */
+    public void setLoadTimeStr(String loadTimeStr);
+
+    public String getLoadTimeStr();
 }

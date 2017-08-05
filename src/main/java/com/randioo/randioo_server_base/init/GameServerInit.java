@@ -17,34 +17,49 @@ import com.randioo.randioo_server_base.protocol.protobuf.ProtoCodecFactory;
 import com.randioo.randioo_server_base.scheduler.SchedulerManager;
 import com.randioo.randioo_server_base.service.ServiceManager;
 
+/**
+ * 游戏服务器初始化
+ * 
+ * @author wcy 2017年8月5日
+ *
+ */
 @Service
 public class GameServerInit {
-	private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+    private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
-	@Autowired
-	private ServiceManager serviceManager;
+    @Autowired
+    private ServiceManager serviceManager;
 
-	@Autowired
-	private SchedulerManager schedulerManager;
+    @Autowired
+    private SchedulerManager schedulerManager;
 
-	@Autowired
-	private GameServerHandlerAdapter gameServerHandlerAdapter;
+    @Autowired
+    private GameServerHandlerAdapter gameServerHandlerAdapter;
 
-	private KeepAliveFilter keepAliveFilter;
+    private KeepAliveFilter keepAliveFilter;
 
-	public void setKeepAliveFilter(KeepAliveFilter keepAliveFilter) {
-		this.keepAliveFilter = keepAliveFilter;
-	}
+    /**
+     * 设置心跳过滤器
+     * 
+     * @param keepAliveFilter
+     * @author wcy 2017年8月5日
+     */
+    public void setKeepAliveFilter(KeepAliveFilter keepAliveFilter) {
+        this.keepAliveFilter = keepAliveFilter;
+    }
 
-	public void start() {
-		serviceManager.initServices();
-		logger.info("init Services");
+    public void start() {
+        // 初始化所有服务
+        serviceManager.initServices();
+        logger.info("init Services");
 
-		schedulerManager.start();
-		logger.info("scheduler start");
+        // 定时器启动
+        schedulerManager.start();
+        logger.info("scheduler start");
 
-		WanServer.startServer(new ProtocolCodecFilter(new ProtoCodecFactory()), keepAliveFilter,
-				gameServerHandlerAdapter, new InetSocketAddress(GlobleMap.Int(GlobleConstant.ARGS_PORT)));
-		logger.info("socket start");
-	}
+        // 长连接启动
+        WanServer.startServer(new ProtocolCodecFilter(new ProtoCodecFactory()), keepAliveFilter,
+                gameServerHandlerAdapter, new InetSocketAddress(GlobleMap.Int(GlobleConstant.ARGS_PORT)));
+        logger.info("socket start");
+    }
 }

@@ -15,41 +15,56 @@ import org.slf4j.LoggerFactory;
 import com.randioo.randioo_server_base.config.ServerConfig;
 import com.randioo.randioo_server_base.protocol.http.ServerHttpMessageCodec;
 
+/**
+ * 网络通讯器
+ * 
+ * @author wcy 2017年8月5日
+ *
+ */
 public class WanServer {
-	private static Logger logger = LoggerFactory.getLogger(WanServer.class.getSimpleName());
+    private static Logger logger = LoggerFactory.getLogger(WanServer.class.getSimpleName());
 
-	public static void startHttpServer(IoHandlerAdapter handler, InetSocketAddress inetSocketAddress) {
-		startServer(new ServerHttpMessageCodec(), null, handler, inetSocketAddress);
-	}
+    public static void startHttpServer(IoHandlerAdapter handler, InetSocketAddress inetSocketAddress) {
+        startServer(new ServerHttpMessageCodec(), null, handler, inetSocketAddress);
+    }
 
-	public static void startServer(IoFilter ioFilter, IoFilter heartFilter, IoHandlerAdapter handler,
-			InetSocketAddress inetSocketAddress) {
-		NioSocketAcceptor ioAcceptor = new NioSocketAcceptor();
+    /**
+     * 启动网络连接
+     * 
+     * @param ioFilter 协议过滤器
+     * @param heartFilter 心跳过滤器
+     * @param handler 回调函数
+     * @param inetSocketAddress 地址
+     * @author wcy 2017年8月5日
+     */
+    public static void startServer(IoFilter ioFilter, IoFilter heartFilter, IoHandlerAdapter handler,
+            InetSocketAddress inetSocketAddress) {
+        NioSocketAcceptor ioAcceptor = new NioSocketAcceptor();
 
-		ioAcceptor.getSessionConfig().setReadBufferSize(ServerConfig.getBufferSize());
+        ioAcceptor.getSessionConfig().setReadBufferSize(ServerConfig.getBufferSize());
 
-		ioAcceptor.getSessionConfig().setIdleTime(IdleStatus.BOTH_IDLE, ServerConfig.getIdleTime());
+        ioAcceptor.getSessionConfig().setIdleTime(IdleStatus.BOTH_IDLE, ServerConfig.getIdleTime());
 
-		ioAcceptor.getSessionConfig().setSendBufferSize(ServerConfig.getBufferSize());
-		ioAcceptor.getSessionConfig().setTcpNoDelay(true);
+        ioAcceptor.getSessionConfig().setSendBufferSize(ServerConfig.getBufferSize());
+        ioAcceptor.getSessionConfig().setTcpNoDelay(true);
 
-		DefaultIoFilterChainBuilder chain = ioAcceptor.getFilterChain();
+        DefaultIoFilterChainBuilder chain = ioAcceptor.getFilterChain();
 
-		chain.addLast("codec", ioFilter);
-		if (heartFilter != null)
-			chain.addLast("keepalive", heartFilter);
+        chain.addLast("codec", ioFilter);
+        if (heartFilter != null)
+            chain.addLast("keepalive", heartFilter);
 
-		chain.addLast("threadpool", new ExecutorFilter(Executors.newCachedThreadPool()));
+        chain.addLast("threadpool", new ExecutorFilter(Executors.newCachedThreadPool()));
 
-		ioAcceptor.setHandler(handler);
-		try {
-			ioAcceptor.setReuseAddress(true);
-			ioAcceptor.bind(inetSocketAddress);
-			logger.info("WANSERVER : START SERVER SUCCESS -> " + handler.getClass().getSimpleName()
-					+ " -> socket port:" + inetSocketAddress.getPort());
-		} catch (IOException e) {
-			throw new RuntimeException(e);
-		}
-	}
+        ioAcceptor.setHandler(handler);
+        try {
+            ioAcceptor.setReuseAddress(true);
+            ioAcceptor.bind(inetSocketAddress);
+            logger.info("WANSERVER : START SERVER SUCCESS -> " + handler.getClass().getSimpleName()
+                    + " -> socket port:" + inetSocketAddress.getPort());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 }

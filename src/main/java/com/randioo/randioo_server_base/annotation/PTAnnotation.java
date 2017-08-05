@@ -5,8 +5,14 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Target({ElementType.TYPE,ElementType.FIELD})
+/**
+ * 用于协议与SupportAction绑定<br>
+ * 此注解用于协议类,如果没有类而是字符串,请使用PTStringAnnotion
+ * 
+ * @author wcy 2017年8月5日
+ */
+@Target({ ElementType.TYPE, ElementType.FIELD })
 @Retention(RetentionPolicy.RUNTIME)
 public @interface PTAnnotation {
-	public Class<?> value();
+    public Class<?> value();
 }
