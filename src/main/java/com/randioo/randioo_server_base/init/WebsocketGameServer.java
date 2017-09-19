@@ -9,6 +9,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.google.protobuf.ExtensionRegistryLite;
+import com.google.protobuf.MessageLite;
 import com.randioo.randioo_server_base.GlobleConstant;
 import com.randioo.randioo_server_base.config.GlobleMap;
 import com.randioo.randioo_server_base.handler.GameServerHandlerAdapter;
@@ -17,14 +19,8 @@ import com.randioo.randioo_server_base.protocol.protobuf.ProtoCodecFactory;
 import com.randioo.randioo_server_base.scheduler.SchedulerManager;
 import com.randioo.randioo_server_base.service.ServiceManager;
 
-/**
- * 游戏服务器初始化
- * 
- * @author wcy 2017年8月5日
- *
- */
 @Service
-public class GameServerInit {
+public class WebsocketGameServer implements GameServer {
     private Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
     @Autowired
@@ -37,29 +33,35 @@ public class GameServerInit {
     private GameServerHandlerAdapter gameServerHandlerAdapter;
 
     private KeepAliveFilter keepAliveFilter;
+    private MessageLite messageLite;
+    private ExtensionRegistryLite extensionRegistryLite;
 
-    /**
-     * 设置心跳过滤器
-     * 
-     * @param keepAliveFilter
-     * @author wcy 2017年8月5日
-     */
     public void setKeepAliveFilter(KeepAliveFilter keepAliveFilter) {
         this.keepAliveFilter = keepAliveFilter;
     }
 
+    public void setMessageLite(MessageLite messageLite) {
+        this.messageLite = messageLite;
+    }
+
+    public void setExtensionRegistryLite(ExtensionRegistryLite extensionRegistryLite) {
+        this.extensionRegistryLite = extensionRegistryLite;
+    }
+
     public void start() {
-        // 初始化所有服务
         serviceManager.initServices();
         logger.info("init Services");
 
-        // 定时器启动
         schedulerManager.start();
         logger.info("scheduler start");
 
-        // 长连接启动
-        WanServer.startServer(new ProtocolCodecFilter(new ProtoCodecFactory()), keepAliveFilter,
-                gameServerHandlerAdapter, new InetSocketAddress(GlobleMap.Int(GlobleConstant.ARGS_PORT)));
+        /** 解析协议工厂 */
+        ProtocolCodecFilter protocolCodecFilter = new ProtocolCodecFilter(new ProtoCodecFactory(messageLite,
+                extensionRegistryLite));
+        keepAliveFilter.setForwardEvent(false);
+
+        WanServer.startServer(protocolCodecFilter, keepAliveFilter, gameServerHandlerAdapter, new InetSocketAddress(
+                GlobleMap.Int(GlobleConstant.ARGS_PORT)));
         logger.info("socket start");
     }
 }
