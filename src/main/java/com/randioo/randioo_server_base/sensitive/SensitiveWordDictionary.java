@@ -11,56 +11,56 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class SensitiveWordDictionary {
-	private static Logger logger = LoggerFactory.getLogger(SensitiveWordDictionary.class.getSimpleName());
+    private final static Logger logger = LoggerFactory.getLogger(SensitiveWordDictionary.class);
 
-	private static SensitiveWordFilter sensitiveWordFilter = new SensitiveWordFilter();
+    private static SensitiveWordFilter sensitiveWordFilter = new SensitiveWordFilter();
 
-	private static void readFile(String path, WordFilter wordFilter) {
-		try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-			String line = null;
-			while ((line = reader.readLine()) != null) {
-				List<String> words = wordFilter.getWord(line);
-				for (String word : words)
-					sensitiveWordFilter.addSensitiveWordToHashMap(word);
-			}
+    private static void readFile(String path, WordFilter wordFilter) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                List<String> words = wordFilter.getWord(line);
+                for (String word : words)
+                    sensitiveWordFilter.addSensitiveWordToHashMap(word);
+            }
 
-		} catch (FileNotFoundException e) {
-			e.printStackTrace();
-		} catch (IOException e1) {
-			e1.printStackTrace();
-		}
-	}
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e1) {
+            e1.printStackTrace();
+        }
+    }
 
-	public static boolean containsSensitiveWord(String... words) {
-		boolean contains = false;
-		for (String word : words) {
-			contains = sensitiveWordFilter.isContaintSensitiveWord(word, SensitiveWordFilter.MIN_MATCH_TYPE);
-			if (contains)
-				break;
-		}
-		return contains;
-	}
+    public static boolean containsSensitiveWord(String... words) {
+        boolean contains = false;
+        for (String word : words) {
+            contains = sensitiveWordFilter.isContaintSensitiveWord(word, SensitiveWordFilter.MIN_MATCH_TYPE);
+            if (contains)
+                break;
+        }
+        return contains;
+    }
 
-	public static void getAllWord() {
-		System.out.println(sensitiveWordFilter.getSensitiveWordMap());
-	}
+    public static void getAllWord() {
+        System.out.println(sensitiveWordFilter.getSensitiveWordMap());
+    }
 
-	public static void readAll(String path) {
-		readFile(path, new WordFilter() {
-			@Override
-			public List<String> getWord(String line) {
-				List<String> list = new LinkedList<>();
-				list.add(line.split("\\|")[0]);
-				return list;
-			}
-		});
-		logger.info("sensitive word load complete");
-	}
+    public static void readAll(String path) {
+        readFile(path, new WordFilter() {
+            @Override
+            public List<String> getWord(String line) {
+                List<String> list = new LinkedList<>();
+                list.add(line.split("\\|")[0]);
+                return list;
+            }
+        });
+        logger.info("sensitive word load complete");
+    }
 
-	public static void main(String[] args) {
-		SensitiveWordDictionary.readAll("./xml/sensitive.txt");
-		boolean contains = SensitiveWordDictionary.containsSensitiveWord("wenjiabao");
-		System.out.println(contains);
-	}
+    public static void main(String[] args) {
+        SensitiveWordDictionary.readAll("./xml/sensitive.txt");
+        boolean contains = SensitiveWordDictionary.containsSensitiveWord("wenjiabao");
+        System.out.println(contains);
+    }
 
 }

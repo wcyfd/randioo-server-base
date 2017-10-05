@@ -114,7 +114,7 @@ public class Session {
         if (isession == null) {
             return false;
         }
-        return isession.isConnected(isession);
+        return isession.isConnected(session);
     }
 
     /**

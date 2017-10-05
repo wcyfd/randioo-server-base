@@ -12,6 +12,9 @@ import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import com.randioo.randioo_server_base.utils.PackageUtil;
 
 /**
@@ -21,6 +24,9 @@ import com.randioo.randioo_server_base.utils.PackageUtil;
  *
  */
 public class ConfigLoader {
+
+    private final static Logger logger = LoggerFactory.getLogger(ConfigLoader.class);
+
     /**
      * 加载一个zip格式的资源包,并在指定的包路径下找到对应的类进行配置表对象的初始化工作<br>
      * zip格式的资源包由工具生成,在游戏项目的根目录的config文件夹中进行生成<br>
@@ -59,12 +65,12 @@ public class ConfigLoader {
 
             }
         } catch (FileNotFoundException e1) {
-            System.out.println("no found config file : " + zipPathName);
+            logger.error("no found config file : {}", zipPathName);
             return;
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println("load config complete");
+        logger.info("load config complete");
     }
 
     /**
@@ -84,7 +90,7 @@ public class ConfigLoader {
             try {
                 classesMap.put((String) clazz.getDeclaredField("urlKey").get(null), clazz);
             } catch (Exception e) {
-                System.out.println(clazz.getSimpleName() + " no urlkey");
+                logger.info("{} no urlkey", clazz.getSimpleName());
             }
         }
 
