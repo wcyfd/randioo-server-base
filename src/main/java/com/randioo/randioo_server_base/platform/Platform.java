@@ -8,7 +8,7 @@ package com.randioo.randioo_server_base.platform;
  */
 public class Platform {
     public enum OS {
-        WIN, LINUX
+        WINDOWS, LINUX
     }
 
     private static OS os = null;
@@ -17,7 +17,7 @@ public class Platform {
         if (os == null) {
             String name = System.getProperty("os.name").toLowerCase();
             if (name.startsWith("win")) {
-                os = OS.WIN;
+                os = OS.WINDOWS;
             } else if (name.equals("linux")) {
                 os = OS.LINUX;
             }

@@ -1,6 +1,5 @@
 package com.randioo.randioo_server_base.utils;
 
-
 public class StringUtils {
 	public static final String fileSplit = System.getProperty("file.separator");
 	public static final String lineSplit = System.getProperty("line.separator");
@@ -65,8 +64,7 @@ public class StringUtils {
 	public static void printArgs(String[] args) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < args.length; i++)
-			sb.append("[").append(i).append("]=").append(args[i])
-					.append(((i + 1) == args.length ? "" : ","));
+			sb.append("[").append(i).append("]=").append(args[i]).append(((i + 1) == args.length ? "" : ","));
 	}
 
 	/**
@@ -80,6 +78,16 @@ public class StringUtils {
 		if (str == null || str.trim().equals(""))
 			return true;
 		return false;
+	}
+
+	/**
+	 * 如果字符串为空返回""
+	 * 
+	 * @param str
+	 * @return
+	 */
+	public static String handleMaybeNullString(String str) {
+		return isNullOrEmpty(str) ? "" : str;
 	}
 
 }

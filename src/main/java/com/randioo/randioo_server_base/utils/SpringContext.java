@@ -42,8 +42,6 @@ public class SpringContext {
      */
     @SuppressWarnings("unchecked")
     public static <T> T getBean(Class<?> clazz) {
-        String string = clazz.getSimpleName();
-        string = StringUtils.firstStrToLowerCase(string);
-        return (T) ctx.getBean(string);
+        return (T) ctx.getBean(clazz);
     }
 }

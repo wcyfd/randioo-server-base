@@ -3,39 +3,14 @@ package com.randioo.randioo_server_base.template;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.randioo.randioo_server_base.utils.PackageUtil;
-import com.randioo.randioo_server_base.utils.SpringContext;
-
 public class Session {
 
-    protected static List<ISession> isessions = null;
-
-    public static void initISession() {
-        initISession("com.randioo.randioo_server_base.session");
-    }
+    protected static List<ISession> isessions;
 
     protected static List<SendCompleteCallback> handlerChains = new ArrayList<>();
 
-    /**
-     * 初始化所有的通信接口
-     * 
-     * @param packageName
-     * @author wcy 2017年9月7日
-     */
-    public static void initISession(String packageName) {
-        List<Class<?>> clazzes = PackageUtil.getClasses(packageName);
-        isessions = new ArrayList<ISession>(clazzes.size());
-
-        for (Class<?> clazz : clazzes) {
-            Class<?>[] Interfaces = clazz.getInterfaces();
-            for (Class<?> Interface : Interfaces) {
-                if (ISession.class.equals(Interface)) {
-                    ISession obj = SpringContext.getBean(clazz);
-                    isessions.add(obj);
-                    break;
-                }
-            }
-        }
+    public static void addISession(List<ISession> session) {
+        isessions = session;
     }
 
     /**
@@ -62,17 +37,24 @@ public class Session {
         return isession;
     }
 
-    public static Object getAttribute(Object session, Object key) {
+    public static <T> T getAttribute(Object session, Object key) {
         ISession isession = getISession(session);
         if (isession == null) {
             return null;
         }
-        return isession.getAttribute(session, key);
+        Object obj = isession.getAttribute(session, key);
+        if (obj == null) {
+            return null;
+        }
+        return (T) obj;
     }
 
     public static void setAttribute(Object session, Object key, Object value) {
         ISession isession = getISession(session);
         if (isession == null) {
+            return;
+        }
+        if (value == null) {
             return;
         }
         isession.setAttribute(session, key, value);

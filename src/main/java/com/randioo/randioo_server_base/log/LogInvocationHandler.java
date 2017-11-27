@@ -11,9 +11,7 @@ public class LogInvocationHandler implements InvocationHandler {
 
     public LogInvocationHandler(Logger proxyLogger, String name) {
         this.logger = proxyLogger;
-        StringBuilder sb = new StringBuilder();
-        sb.append("[").append(name).append("] ");
-        this.name = sb.toString();
+        this.name = name;
     }
 
     @Override

@@ -14,99 +14,103 @@ import com.randioo.randioo_server_base.utils.TimeUtils;
 
 public class EventScheduler implements SchedulerInterface {
 
-	private int slowTime = 15;
-	private int quickTime = 1;
-	private int slowTimeDeltaTime = 2;
+    private int slowTime = 15;
+    private int quickTime = 1;
+    private int slowTimeDeltaTime = 2;
 
-	public void setSlowTime(int slowTime) {
-		this.slowTime = slowTime;
-	}
+    public void setSlowTime(int slowTime) {
+        this.slowTime = slowTime;
+    }
 
-	public void setQuickTime(int quickTime) {
-		this.quickTime = quickTime;
-	}
+    public void setQuickTime(int quickTime) {
+        this.quickTime = quickTime;
+    }
 
-	public void setSlowTimeDeltaTime(int slowTimeDeltaTime) {
-		this.slowTimeDeltaTime = slowTimeDeltaTime;
-	}
+    public void setSlowTimeDeltaTime(int slowTimeDeltaTime) {
+        this.slowTimeDeltaTime = slowTimeDeltaTime;
+    }
 
-	private ScheduledExecutorService eventService = Executors.newScheduledThreadPool(1);
-	private ExecutorService handlerService = Executors.newSingleThreadExecutor();
-	private Map<TimeEvent, TimeEvent> slowSet = new ConcurrentHashMap<>();
-	private Map<TimeEvent, TimeEvent> quickSet = new ConcurrentHashMap<>();
+    private ScheduledExecutorService eventService = Executors.newScheduledThreadPool(1);
+    private ExecutorService handlerService = Executors.newSingleThreadExecutor();
+    private Map<TimeEvent, TimeEvent> slowSet = new ConcurrentHashMap<>();
+    private Map<TimeEvent, TimeEvent> quickSet = new ConcurrentHashMap<>();
 
-	@Override
-	public void start() {
-		eventService.scheduleAtFixedRate(new Runnable() {
+    public void setHandlerService(ExecutorService service) {
+        this.handlerService = service;
+    }
 
-			@Override
-			public void run() {
-				Set<TimeEvent> deleteSet = new HashSet<>();
-				for (TimeEvent timeEvent : quickSet.values()) {
-					int nowTime = TimeUtils.getNowTime();
-					int endTime = timeEvent.getEndTime();
-					if (nowTime >= endTime) {
-						deleteSet.add(timeEvent);
-						handlerService.submit(new EntityRunnable<TimeEvent>(timeEvent) {
+    @Override
+    public void start() {
+        eventService.scheduleAtFixedRate(new Runnable() {
 
-							@Override
-							public void run(TimeEvent entity) {
-								try {
-									entity.update(entity);
-								} catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
+            @Override
+            public void run() {
+                Set<TimeEvent> deleteSet = new HashSet<>();
+                for (TimeEvent timeEvent : quickSet.values()) {
+                    int nowTime = TimeUtils.getNowTime();
+                    int endTime = timeEvent.getEndTime();
+                    if (nowTime >= endTime) {
+                        deleteSet.add(timeEvent);
+                        handlerService.submit(new EntityRunnable<TimeEvent>(timeEvent) {
 
-						});
-					}
-				}
+                            @Override
+                            public void run(TimeEvent entity) {
+                                try {
+                                    entity.update(entity);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            }
 
-				// 移除
-				for (TimeEvent timeEvent : deleteSet) {
-					quickSet.remove(timeEvent);
-				}
-			}
-		}, 1, quickTime, TimeUnit.SECONDS);
+                        });
+                    }
+                }
 
-		eventService.scheduleAtFixedRate(new Runnable() {
+                // 移除
+                for (TimeEvent timeEvent : deleteSet) {
+                    quickSet.remove(timeEvent);
+                }
+            }
+        }, 1, quickTime, TimeUnit.SECONDS);
 
-			@Override
-			public void run() {
-				Set<TimeEvent> deleteSet = new HashSet<>();
-				for (TimeEvent timeEvent : slowSet.values()) {
-					if (timeEvent.getEndTime() - TimeUtils.getNowTime() <= (slowTime + slowTimeDeltaTime)) {
-						quickSet.put(timeEvent, timeEvent);
-						deleteSet.add(timeEvent);
-					}
-				}
+        eventService.scheduleAtFixedRate(new Runnable() {
 
-				// 移除
-				for (TimeEvent timeEvent : deleteSet) {
-					slowSet.remove(timeEvent);
-				}
+            @Override
+            public void run() {
+                Set<TimeEvent> deleteSet = new HashSet<>();
+                for (TimeEvent timeEvent : slowSet.values()) {
+                    if (timeEvent.getEndTime() - TimeUtils.getNowTime() <= (slowTime + slowTimeDeltaTime)) {
+                        quickSet.put(timeEvent, timeEvent);
+                        deleteSet.add(timeEvent);
+                    }
+                }
 
-			}
-		}, 0, slowTime, TimeUnit.SECONDS);
-	}
+                // 移除
+                for (TimeEvent timeEvent : deleteSet) {
+                    slowSet.remove(timeEvent);
+                }
 
-	public void addEvent(TimeEvent timeEvent) {
-		if (timeEvent.getEndTime() - TimeUtils.getNowTime() < this.slowTime) {
-			quickSet.put(timeEvent, timeEvent);
-		} else {
-			slowSet.put(timeEvent, timeEvent);
-		}
-	}
+            }
+        }, 0, slowTime, TimeUnit.SECONDS);
+    }
 
-	@Override
-	public void shutdown(long timeout, TimeUnit unit) throws Exception {
-		eventService.shutdown();
-		while (!eventService.awaitTermination(timeout, unit)) {
-		}
-		
-		handlerService.shutdown();
-		while (!handlerService.awaitTermination(timeout, unit)) {
-		}		
-	}
+    public void addEvent(TimeEvent timeEvent) {
+        if (timeEvent.getEndTime() - TimeUtils.getNowTime() < this.slowTime) {
+            quickSet.put(timeEvent, timeEvent);
+        } else {
+            slowSet.put(timeEvent, timeEvent);
+        }
+    }
+
+    @Override
+    public void shutdown(long timeout, TimeUnit unit) throws Exception {
+        eventService.shutdown();
+        while (!eventService.awaitTermination(timeout, unit)) {
+        }
+
+        handlerService.shutdown();
+        while (!handlerService.awaitTermination(timeout, unit)) {
+        }
+    }
 
 }

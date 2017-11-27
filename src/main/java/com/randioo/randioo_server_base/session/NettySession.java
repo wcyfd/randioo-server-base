@@ -1,7 +1,5 @@
 package com.randioo.randioo_server_base.session;
 
-import org.springframework.stereotype.Component;
-
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.util.Attribute;
@@ -9,7 +7,6 @@ import io.netty.util.AttributeKey;
 
 import com.randioo.randioo_server_base.template.ISession;
 
-@Component
 public class NettySession implements ISession {
 
     @Override

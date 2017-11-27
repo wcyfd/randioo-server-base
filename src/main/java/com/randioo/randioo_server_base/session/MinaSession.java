@@ -1,11 +1,9 @@
 package com.randioo.randioo_server_base.session;
 
 import org.apache.mina.core.session.IoSession;
-import org.springframework.stereotype.Component;
 
 import com.randioo.randioo_server_base.template.ISession;
 
-@Component
 public class MinaSession implements ISession {
 
     @Override

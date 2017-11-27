@@ -14,7 +14,6 @@ import org.apache.mina.filter.codec.ProtocolEncoderAdapter;
 import org.apache.mina.filter.codec.ProtocolEncoderOutput;
 
 import com.google.protobuf.GeneratedMessage;
-import com.randioo.randioo_server_base.protocol.json.GeneratedJsonMessage;
 import com.randioo.randioo_server_base.protocol.websocket.mina.WebSocketCodecPacket;
 import com.randioo.randioo_server_base.protocol.websocket.mina.WebSocketHandShakeResponse;
 import com.randioo.randioo_server_base.protocol.websocket.mina.WebSocketUtils;
@@ -36,7 +35,7 @@ public class WebSocketProtobufEncoder extends ProtocolEncoderAdapter {
     @Override
     public void encode(IoSession session, Object message, ProtocolEncoderOutput out) throws Exception {
         boolean isHandshakeResponse = message instanceof WebSocketHandShakeResponse;
-        boolean isDataFramePacket = message instanceof GeneratedJsonMessage;
+        boolean isDataFramePacket = message instanceof GeneratedMessage;
         boolean isRemoteWebSocket = session.containsAttribute(WebSocketUtils.SessionAttribute)
                 && (true == (Boolean) session.getAttribute(WebSocketUtils.SessionAttribute));
         IoBuffer resultBuffer;

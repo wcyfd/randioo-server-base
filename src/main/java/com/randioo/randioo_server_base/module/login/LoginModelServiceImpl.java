@@ -1,10 +1,10 @@
 package com.randioo.randioo_server_base.module.login;
 
-import java.rmi.RemoteException;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.randioo.randioo_server_base.cache.RoleCache;
@@ -19,15 +19,7 @@ import com.randioo.randioo_server_base.utils.TimeUtils;
 @Service("loginModelService")
 public class LoginModelServiceImpl extends BaseService implements LoginModelService {
 
-    /**
-     * 
-     */
-    private static final long serialVersionUID = 4955539585779764566L;
-
-    protected LoginModelServiceImpl() throws RemoteException {
-        super();
-    }
-
+    private final static Logger logger = LoggerFactory.getLogger(LoginModelService.class);
     private LoginHandler loginHandler;
 
     @Override
@@ -40,9 +32,9 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
         String account = loginInfo.getAccount();
         String nowTime = TimeUtils.getDetailTimeStr();
         ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, account);
-        reentrantLock.lock();
 
         try {
+            reentrantLock.lock();
             // 获得玩家对象
             RoleInterface roleInterface = this.getRoleInterfaceByAccount(account);
             if (roleInterface == null) {
@@ -50,6 +42,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
                 boolean checkAccount = loginHandler.createRoleCheckAccount(loginInfo, errorCode);
                 // 账号格式不合法,返回错误码
                 if (!checkAccount) {
+                    errorCode.set(LoginModelConstant.GET_ROLE_DATA_NOT_EXIST);
                     return null;
                 } else {
                     try {
@@ -57,7 +50,8 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
                         roleInterface = loginHandler.createRole(loginInfo);
                         roleInterface.setCreateTimeStr(TimeUtils.getDetailTimeStr());
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        logger.error("", e);
+                        errorCode.set(LoginModelConstant.CREATE_ROLE_FAILED);
                         return null;
                     }
                 }
@@ -66,37 +60,24 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 
             int roleId = roleInterface.getRoleId();
 
-            // 从该玩家的设备表中获得该设备
-            Facility newLoginFacility = this.getFacility(roleId, loginInfo);
+            Object lastSession = SessionCache.getSessionById(roleId);
 
-            // 如果有旧的连接，则检查该链接的设备号，如果设备号相同，则直接重新连接，如果设备号不相同则提示异地登录
-            Facility currentFacility = FacilityCache.getLoginFacilityMap().get(roleId);
-
-            Facility resultFacility = null;
-            if (currentFacility != null) {
-                // 设备号相同直接重新连接
-                if (currentFacility.getMacAddress().equals(newLoginFacility.getMacAddress())) {
-                    resultFacility = currentFacility;
-                } else {
-                    // 设备号不同
-                    // 该次登陆的设备如果有旧的链接，则先关闭,然后再进行替换,新设备设置新的连接
-                    resultFacility = newLoginFacility;
-                    // 通知异地登陆并直接替换
-                    loginHandler.noticeOtherPlaceLogin(currentFacility);
+            if (lastSession != null) {
+                String lastMac = Session.getAttribute(session, "mac");
+                if (lastMac == null || !lastMac.equals(loginInfo.getMacAddress())) {
+                    // 通知异地登录
+                    loginHandler.noticeOtherPlaceLogin(lastSession);
+                    Session.close(lastSession);
                 }
-            } else {
-                // 没有旧连接则直接加入
-                resultFacility = newLoginFacility;
             }
-
-            resultFacility.setSession(session);
-            FacilityCache.getLoginFacilityMap().put(roleId, resultFacility);
 
             // 设置登陆时间
             roleInterface.setLoginTimeStr(nowTime);
 
             // session绑定ID
             Session.setAttribute(session, "roleId", roleId);
+
+            Session.setAttribute(session, "mac", loginInfo.getMacAddress());
 
             // session放入缓存
             SessionCache.addSession(roleId, session);
@@ -106,7 +87,8 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
 
             return roleInterface;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("", e);
+            errorCode.set(LoginModelConstant.GET_ROLE_DATA_FAILED);
             return null;
         } finally {
             reentrantLock.unlock();
@@ -122,8 +104,8 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
                 return null;
             }
             Lock lock = CacheLockUtil.getLock(String.class, role.getAccount());
-            lock.lock();
             try {
+                lock.lock();
                 RoleInterface role2 = RoleCache.getRoleById(roleId);
                 if (role2 != null) {
                     return role2;
@@ -132,7 +114,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
                 loginHandler.loginRoleModuleDataInit(role);
                 RoleCache.putRoleCache(role);
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("", e);
             } finally {
                 lock.unlock();
             }
@@ -150,8 +132,8 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
                 return null;
             }
             Lock lock = CacheLockUtil.getLock(String.class, account);
-            lock.lock();
             try {
+                lock.lock();
                 RoleInterface role2 = RoleCache.getRoleByAccount(account);
                 if (role2 != null) {
                     return role2;
@@ -161,7 +143,7 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
                 RoleCache.putRoleCache(role);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                logger.error("", e);
             } finally {
                 lock.unlock();
             }
@@ -171,33 +153,32 @@ public class LoginModelServiceImpl extends BaseService implements LoginModelServ
     }
 
     @Override
-    public Facility getFacility(int roleId, LoginInfo loginInfo) {
-        Map<Integer, RoleFacilities> map = FacilityCache.getRoleFacilitiesMap();
-        String macAddress = loginInfo.getMacAddress();
-        // 缓存里没有去数据库查，如果还是没有则新建一个
-        if (!map.containsKey(roleId)) {
-            RoleFacilities roleFacilities = new RoleFacilities();
-            roleFacilities.setRoleId(roleId);
-            map.put(roleId, roleFacilities);
+    public void offline(Object session) {
+        Integer roleId = Session.getAttribute(session, "roleId");
+        if (roleId == null) {
+            return;
         }
 
-        RoleFacilities roleFacilities = map.get(roleId);
+        RoleInterface roleInterface = RoleCache.getRoleById(roleId);
+        if (roleInterface == null || roleInterface.getAccount() == null) {
+            return;
+        }
 
-        Map<String, Facility> facilities = roleFacilities.getFacilities();
-        if (!facilities.containsKey(macAddress)) {
-            Facility facility = loginHandler.getFacilityFromDB(roleId, macAddress);
-            if (facility == null) {
-                facility = new Facility();
-                facility.setMacAddress(loginInfo.getMacAddress());
-                facility.setRoleId(roleId);
-                facilities.put(macAddress, facility);
-                loginHandler.saveFacility(facility);
+        ReentrantLock reentrantLock = CacheLockUtil.getLock(String.class, roleInterface.getAccount());
+        try {
+            reentrantLock.lock();
+
+            loginHandler.closeCallback(session);
+
+            // 如果要关闭的session与当前的不同,则不从SessionCache中移除
+            Object currentSession = SessionCache.getSessionById(roleId);
+            if (currentSession == session) {
+                SessionCache.removeSessionById(roleId);
             }
+        } catch (Exception e) {
+            logger.error("offline error{}", e);
+        } finally {
+            reentrantLock.unlock();
         }
-
-        Facility facility = facilities.get(macAddress);
-
-        return facility;
     }
-
 }

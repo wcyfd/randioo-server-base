@@ -45,4 +45,8 @@ public class SessionCache {
         return sessionMap.values();
     }
 
+    public static void removeSessionById(int roleId) {
+        sessionMap.remove(roleId);
+    }
+
 }

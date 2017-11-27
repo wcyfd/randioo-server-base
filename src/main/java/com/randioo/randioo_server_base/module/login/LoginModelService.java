@@ -13,6 +13,6 @@ public interface LoginModelService extends BaseServiceInterface {
 
     RoleInterface getRoleInterfaceByAccount(String account);
 
-    Facility getFacility(int roleId, LoginInfo loginInfo);
+    void offline(Object session);
 
 }

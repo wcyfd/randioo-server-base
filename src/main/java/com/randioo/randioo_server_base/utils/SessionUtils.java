@@ -16,7 +16,7 @@ public class SessionUtils {
     }
 
     public static void sc(int roleId, Object message) {
-        logger.info("roleId=" + roleId + " " + message);
+        logger.info("roleId={} message={}", roleId, message);
         Object session = SessionCache.getSessionById(roleId);
         sc(session, message);
     }

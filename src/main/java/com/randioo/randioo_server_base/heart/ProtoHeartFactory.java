@@ -46,13 +46,13 @@ public class ProtoHeartFactory implements KeepAliveMessageFactory {
 
     @Override
     public boolean isRequest(IoSession arg0, Object arg1) {
-        boolean isRequest = heartRequest.toString().equals(arg1.toString());
+        boolean isRequest = heartRequest.equals(arg1);
         return isRequest;
     }
 
     @Override
     public boolean isResponse(IoSession arg0, Object arg1) {
-        boolean isResponse = csHeart.toString().equals(arg1.toString());
+        boolean isResponse = csHeart.equals(arg1);
         return isResponse;
     }
 

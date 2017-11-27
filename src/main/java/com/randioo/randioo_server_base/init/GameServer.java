@@ -1,5 +1,6 @@
 package com.randioo.randioo_server_base.init;
 
+
 public interface GameServer {
     /**
      * 启动
@@ -7,4 +8,5 @@ public interface GameServer {
      * @author wcy 2017年9月18日
      */
     public void start();
+
 }
