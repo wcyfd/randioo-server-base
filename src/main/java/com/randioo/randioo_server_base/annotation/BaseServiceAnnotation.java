@@ -9,6 +9,4 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 public @interface BaseServiceAnnotation {
     public int order() default 10;
-
-    public String value();
 }

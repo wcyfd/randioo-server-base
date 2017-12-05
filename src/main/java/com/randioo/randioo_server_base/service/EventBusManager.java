@@ -1,6 +1,6 @@
 package com.randioo.randioo_server_base.service;
 
-import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,14 +11,12 @@ import org.springframework.context.ApplicationContextAware;
 import com.google.common.eventbus.AsyncEventBus;
 import com.google.common.eventbus.EventBus;
 import com.randioo.randioo_server_base.eventbus.Listener;
-import com.randioo.randioo_server_base.utils.PackageUtil;
 
 public class EventBusManager implements ApplicationContextAware {
     private Logger logger = LoggerFactory.getLogger(EventBusManager.class);
 
     private EventBus eventBus;
     private AsyncEventBus asyncEventBus;
-    private String basePackage;
 
     public void setEventBus(EventBus eventBus) {
         this.eventBus = eventBus;
@@ -28,20 +26,12 @@ public class EventBusManager implements ApplicationContextAware {
         this.asyncEventBus = asyncEventBus;
     }
 
-    public void setBasePackage(String basePackage) {
-        this.basePackage = basePackage;
-    }
-
     @Override
-    public void setApplicationContext(ApplicationContext arg0) throws BeansException {
-        List<Class<?>> classes = PackageUtil.getClasses(basePackage);
+    public void setApplicationContext(ApplicationContext context) throws BeansException {
+        Map<String, Listener> listenerMap = context.getBeansOfType(Listener.class);
 
-        for (Class<?> clazz : classes) {
-            if (!isListener(clazz)) {
-                return;
-            }
-
-            Listener listener = (Listener) arg0.getBean(clazz);
+        for (Map.Entry<String, Listener> entrySet : listenerMap.entrySet()) {
+            Listener listener = entrySet.getValue();
             logger.info("scan listener {}", listener);
 
             if (isAsyncListener(listener)) {
@@ -73,17 +63,6 @@ public class EventBusManager implements ApplicationContextAware {
     private boolean isAsyncListener(Listener listener) {
         Async async = listener.getClass().getAnnotation(Async.class);
         return async != null;
-    }
-
-    private boolean isListener(Class<?> clazz) {
-        Class<?>[] interfaceClasses = clazz.getInterfaces();
-        for (Class<?> interfaceClass : interfaceClasses) {
-            if (interfaceClass == Listener.class) {
-                return true;
-            }
-        }
-
-        return false;
     }
 
 }
